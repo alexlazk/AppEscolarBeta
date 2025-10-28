@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title><?= initial.settings.SCHOOL_NAME || 'Recicla App' ?></title>
+
+  <!-- ====== CSS embebido ====== -->
+  <style>
+    :root{
+      --primary: #0DB65C;
+      --secondary: #005B41;
+      --bg: #F6FFF9;
+      --text: #1a1a1a;
+      --muted: #5f6b63;
+      --card: #ffffff;
+      --soft: #f2fbf6;
+      --radius: 14px;
+      --shadow: 0 8px 30px rgba(0,0,0,.06);
+    }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; color:var(--text); background:var(--bg);}
+    .app-header{ display:flex; gap:12px; align-items:center; padding:12px 16px; background:var(--card); box-shadow:var(--shadow); position:sticky; top:0; z-index:10;}
+    .logo{ font-size:28px;}
+    .title h1{ font-size:18px; margin:0; }
+    .title small{ color:var(--muted); }
+
+    .container{ padding:16px; padding-bottom:80px; max-width:980px; margin:0 auto; }
+    .card{ background:var(--card); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); margin-bottom:16px;}
+    .card.soft{ background:var(--soft); }
+    .hidden{ display:none; }
+
+    .btn{ appearance:none; border:none; border-radius:12px; padding:12px 16px; background:#e6f4ec; cursor:pointer; font-weight:600; }
+    .btn.primary{ background:var(--primary); color:white; }
+    .btn:active{ transform: translateY(1px); }
+
+    .form-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin:10px 0 16px;}
+    .form-row{ display:flex; gap:10px; align-items:flex-end; margin-bottom:12px;}
+    label{ font-size:14px; color:var(--muted); display:flex; flex-direction:column; gap:6px;}
+    input{ padding:10px 12px; border:1px solid #d0ded6; border-radius:10px; outline:none; }
+    input:focus{ border-color:var(--primary); box-shadow:0 0 0 3px rgba(13,182,92,.15);}
+
+    .grid-2{ display:grid; grid-template-columns:1fr; gap:16px;}
+    @media(min-width:840px){ .grid-2{ grid-template-columns:1fr 1fr; } }
+
+    .muted{ color:var(--muted); }
+    .feedback{ margin-top:8px; min-height:24px; font-weight:600; }
+    .qr-box{ width:100%; max-width:420px; margin-top:8px; border:2px dashed #cfe8db; border-radius:12px; padding:6px;}
+
+    .stat{ display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:white; border-radius:10px; margin-bottom:8px; }
+    .progress{ background:#e8f5ee; border-radius:999px; height:12px; overflow:hidden; }
+    .progress>div{ height:100%; width:0; background:var(--secondary); transition:width .4s ease; }
+
+    .tabs{ display:flex; gap:6px; margin-bottom:12px;}
+    .tab{ padding:8px 12px; background:#ecf6f0; border-radius:10px; cursor:pointer;}
+    .tab.active{ background:var(--primary); color:white; }
+
+    .list{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+    .card-item{ background:white; border-radius:12px; padding:12px; box-shadow:var(--shadow); }
+    .card-item h4{ margin:4px 0 6px; }
+    .card-item small{ color:var(--muted); }
+
+    .content-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
+    .content{ background:white; border-radius:12px; padding:12px; box-shadow:var(--shadow); }
+
+    .nav{ position:fixed; bottom:0; left:0; right:0; background:var(--card); display:flex; justify-content:space-around; padding:8px; box-shadow:0 -6px 22px rgba(0,0,0,.08); }
+    .nav-btn{ background:transparent; border:none; padding:8px; font-size:18px; }
+
+    .counter{ display:flex; gap:10px; align-items:center; margin-top:8px; }
+    .challenge{ margin-top:10px; }
+  </style>
+
+  <!-- Dependencias externas -->
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="logo">♻️</div>
+    <div class="title">
+      <h1 id="schoolName"></h1>
+      <small>Proyecto de Reciclaje – 5º</small>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Registro inicial -->
+    <section id="view-register" class="card">
+      <h2>¡Hola! Crea tu perfil</h2>
+      <p class="muted">La primera vez, dinos quién eres. Guardaremos tus datos en este dispositivo.</p>
+      <div class="form-grid">
+        <label>ID Alumno <input id="reg-id" placeholder="Ej: A-0501" required></label>
+        <label>Nombre <input id="reg-name" placeholder="Ej: Sofía L." required></label>
+        <label>Grupo <input id="reg-group" placeholder="Ej: 5°" required></label>
+        <label>Clase <input id="reg-class" placeholder="Ej: 5A" required></label>
+        <label>Email (opcional) <input id="reg-email" type="email" placeholder="tucorreo@colegio.edu"></label>
+      </div>
+      <button class="btn primary" id="btn-save-profile">Guardar</button>
+    </section>
+
+    <!-- Inicio -->
+    <section id="view-home" class="card hidden">
+      <h2>¡Bienvenido, <span id="studentName"></span>!</h2>
+      <div class="grid-2">
+        <div class="card soft">
+          <h3>Escanear y Registrar</h3>
+          <p>Deposita plástico en el contenedor correcto y escanea el QR.</p>
+          <button class="btn primary" id="btn-open-scanner">Abrir cámara</button>
+          <div id="qr-reader" class="qr-box hidden"></div>
+          <div class="counter">
+            <label>Cantidad <input id="deposit-count" type="number" min="1" value="1"></label>
+            <button class="btn" id="btn-log-manual">Registrar sin QR</button>
+          </div>
+          <div id="feedback" class="feedback"></div>
+        </div>
+        <div class="card soft">
+          <h3>Mi Progreso</h3>
+          <div class="stat"><div>🎯 Puntos</div><strong id="myPoints">0</strong></div>
+          <div class="stat"><div>🧃 Depósitos</div><strong id="myDeposits">0</strong></div>
+          <div id="challengeBox" class="challenge hidden">
+            <h4>Reto semanal</h4>
+            <div class="progress"><div id="ch-progress"></div></div>
+            <small id="ch-text"></small>
+          </div>
+          <button class="btn" id="btn-edit-profile">Editar perfil</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ranking -->
+    <section id="view-ranking" class="card hidden">
+      <h2>Rankings</h2>
+      <div class="tabs">
+        <button class="tab active" data-tab="student">Estudiantes</button>
+        <button class="tab" data-tab="class">Clases</button>
+        <button class="tab" data-tab="group">Grupos</button>
+      </div>
+      <div id="rank-student"></div>
+      <div id="rank-class" class="hidden"></div>
+      <div id="rank-group" class="hidden"></div>
+    </section>
+
+    <!-- Recompensas -->
+    <section id="view-rewards" class="card hidden">
+      <h2>Tienda Verde</h2>
+      <div id="rewards-list" class="list"></div>
+    </section>
+
+    <!-- Educación -->
+    <section id="view-learn" class="card hidden">
+      <h2>Aprende y Actúa</h2>
+      <div class="content-grid" id="content-list"></div>
+    </section>
+
+    <!-- Docentes -->
+    <section id="view-admin" class="card hidden">
+      <h2>Panel Docente</h2>
+      <div class="form-row">
+        <label>Clave docente <input id="admin-key" type="password" placeholder="••••"></label>
+        <button class="btn" id="btn-admin-login">Entrar</button>
+      </div>
+      <div id="admin-area" class="hidden">
+        <div class="grid-2">
+          <div class="card soft">
+            <h3>Estadísticas</h3>
+            <div id="kpi-total"></div>
+            <div id="chart-by-mat" style="height:280px"></div>
+            <h4>Top estudiantes</h4>
+            <div id="top-students"></div>
+            <h4>Top clases</h4>
+            <div id="top-classes"></div>
+          </div>
+          <div class="card soft">
+            <h3>Acciones</h3>
+            <button class="btn" id="btn-export">Exportar CSV</button>
+            <button class="btn" id="btn-roll-challenge">Nueva semana (reto)</button>
+            <small class="muted">* Úsalo al iniciar la nueva semana escolar.</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navegación -->
+    <nav class="nav">
+      <button class="nav-btn" data-go="view-home">🏠 Inicio</button>
+      <button class="nav-btn" data-go="view-ranking">🏆 Ranking</button>
+      <button class="nav-btn" data-go="view-rewards">🎁 Recompensas</button>
+      <button class="nav-btn" data-go="view-learn">🌱 Aprende</button>
+      <button class="nav-btn" data-go="view-admin">👩‍🏫 Docentes</button>
+    </nav>
+  </main>
+
+  <!-- ====== JS embebido ====== -->
+  <script>
+    // Utils DOM
+    function $(s){ return document.querySelector(s); }
+    function $$(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); }
+
+    var html5Scanner = null;
+    var profile = null;
+
+    function show(id){
+      ['view-register','view-home','view-ranking','view-rewards','view-learn','view-admin']
+        .forEach(function(v){ document.getElementById(v).classList.toggle('hidden', v !== id); });
+    }
+
+    // Navegación
+    $$('.nav-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.dataset.go;
+        if (id === 'view-home' && !profile) return show('view-register');
+        show(id);
+        if (id === 'view-ranking') loadRanking();
+        if (id === 'view-rewards') loadRewards();
+        if (id === 'view-learn') loadContent();
+      });
+    });
+
+    /* ---------- Registro inicial ---------- */
+    function loadProfileFromLocal() {
+      try { profile = JSON.parse(localStorage.getItem('recycle_profile') || 'null'); } catch(e){ profile = null; }
+    }
+    function saveProfileLocal(p) { localStorage.setItem('recycle_profile', JSON.stringify(p)); }
+
+    // Con failureHandler para ver errores reales del backend
+    $('#btn-save-profile').addEventListener('click', function(){
+      var p = {
+        studentId: $('#reg-id').value.trim(),
+        name: $('#reg-name').value.trim(),
+        group: $('#reg-group').value.trim(),
+        className: $('#reg-class').value.trim(),
+        email: $('#reg-email').value.trim()
+      };
+      if (!p.studentId || !p.name || !p.group || !p.className) {
+        alert('Completa ID, Nombre, Grupo y Clase');
+        return;
+      }
+      google.script.run
+        .withSuccessHandler(function(st){
+          if (!st) { alert('No se pudo guardar el perfil.'); return; }
+          profile = p;
+          saveProfileLocal(profile);
+          hydrateHome();
+          show('view-home');
+        })
+        .withFailureHandler(function(err){
+          var msg = (err && err.message) ? err.message : JSON.stringify(err);
+          alert('Error guardando perfil: ' + msg);
+        })
+        .upsertStudent(p);
+    });
+
+    $('#btn-edit-profile').addEventListener('click', function(){
+      $('#reg-id').value = profile.studentId;
+      $('#reg-name').value = profile.name;
+      $('#reg-group').value = profile.group;
+      $('#reg-class').value = profile.className;
+      $('#reg-email').value = profile.email || '';
+      show('view-register');
+    });
+
+    /* ---------- Inicio / Progreso ---------- */
+    function hydrateHome(){
+      $('#studentName').textContent = (profile && profile.name) ? profile.name : 'Estudiante';
+      google.script.run.withSuccessHandler(function(res){
+        if (!res || !res.ok) return;
+        $('#myPoints').textContent = res.points;
+        $('#myDeposits').textContent = res.deposits;
+        if (res.challenge) {
+          var goal = res.challenge.goal, done = res.challenge.done, start = res.challenge.start, end = res.challenge.end, bonus = res.challenge.bonus;
+          var pct = Math.min(100, Math.round((done/goal)*100));
+          $('#ch-progress').style.width = pct + '%';
+          $('#ch-text').textContent = 'Lleva ' + done + '/' + goal + '. Semana ' + start + ' a ' + end + '. Bono +' + bonus + ' pts.';
+          $('#challengeBox').classList.remove('hidden');
+        } else {
+          $('#challengeBox').classList.add('hidden');
+        }
+      }).getMySummary(profile.studentId);
+    }
+
+    /* ---------- QR Scanner ---------- */
+    $('#btn-open-scanner').addEventListener('click', function(){
+      if (!profile) return show('view-register');
+      var el = document.getElementById('qr-reader');
+      el.classList.remove('hidden');
+      if (html5Scanner) return;
+      html5Scanner = new Html5Qrcode('qr-reader');
+      Html5Qrcode.getCameras().then(function(devices){
+        var camId = devices && devices[0] && devices[0].id;
+        if (!camId) throw new Error('No hay cámara disponible');
+        html5Scanner.start(
+          camId,
+          { fps: 10, qrbox: {width: 250, height: 250} },
+          onScanSuccess,
+          function(){}
+        ).catch(function(e){
+          feedback('No se pudo iniciar la cámara. Usa “Registrar sin QR”.', true);
+        });
+      }).catch(function(e){
+        feedback('No se pudo iniciar la cámara. Usa “Registrar sin QR”.', true);
+      });
+    });
+    function onScanSuccess(decodedText){
+      var count = Number($('#deposit-count').value || 1);
+      registerDeposit(decodedText, count);
+      html5Scanner.stop().then(function(){
+        document.getElementById('qr-reader').classList.add('hidden');
+        html5Scanner = null;
+      });
+    }
+    $('#btn-log-manual').addEventListener('click', function(){
+      var count = Number($('#deposit-count').value || 1);
+      var fakeQR = 'RCP|PLASTICO|MANUAL|ESCUELA-001';
+      registerDeposit(fakeQR, count);
+    });
+
+    function feedback(msg, isError){
+      var box = $('#feedback');
+      box.textContent = msg;
+      box.style.color = isError ? '#b3261e' : '#0b6b3a';
+      if (!isError) { box.textContent += ' 🎉'; }
+    }
+
+    /* ---------- Registrar depósito ---------- */
+    function registerDeposit(qrText, count){
+      if (!profile) return show('view-register');
+      google.script.run
+        .withSuccessHandler(function(res){
+          if (!res || !res.ok) return feedback(res && res.error ? res.error : 'Error al registrar', true);
+          feedback('¡Registrado! +' + res.pointsAwarded + ' pts');
+          hydrateHome();
+        })
+        .withFailureHandler(function(err){
+          var msg = (err && err.message) ? err.message : JSON.stringify(err);
+          feedback('Error: ' + msg, true);
+        })
+        .logRecycling({ qrText: qrText, studentId: profile.studentId, count: count });
+    }
+
+    /* ---------- Rankings ---------- */
+    function loadRanking(){
+      google.script.run.withSuccessHandler(function(list){ renderRank('#rank-student', list, 'Estudiante'); }).getLeaderboard('student');
+      google.script.run.withSuccessHandler(function(list){ renderRank('#rank-class', list, 'Clase'); }).getLeaderboard('class');
+      google.script.run.withSuccessHandler(function(list){ renderRank('#rank-group', list, 'Grupo'); }).getLeaderboard('group');
+
+      $$('.tab').forEach(function(t){
+        t.addEventListener('click', function(){
+          $$('.tab').forEach(function(x){ x.classList.remove('active'); });
+          t.classList.add('active');
+          $('#rank-student').classList.add('hidden');
+          $('#rank-class').classList.add('hidden');
+          $('#rank-group').classList.add('hidden');
+          document.getElementById('rank-'+t.dataset.tab).classList.remove('hidden');
+        });
+      });
+    }
+    function renderRank(sel, list, label){
+      var el = document.querySelector(sel);
+      if (!list || !list.length) { el.innerHTML = '<p class="muted">Sin datos todavía.</p>'; return; }
+      var rows = list.map(function(r,i){
+        var left = label==='Estudiante'
+          ? (i+1) + '. ' + r.name + ' <small class="muted">(' + (r.class || r.group || r.id) + ')</small>'
+          : (label==='Clase' ? (i+1) + '. ' + r.class : (i+1) + '. ' + r.group);
+        return '<div class="stat"><div>' + left + '</div><strong>' + r.points + ' pts</strong></div>';
+      }).join('');
+      el.innerHTML = rows;
+    }
+
+    /* ---------- Recompensas ---------- */
+    function loadRewards(){
+      google.script.run.withSuccessHandler(function(list){
+        if (!list.length) { $('#rewards-list').innerHTML = '<p class="muted">Sin recompensas activas.</p>'; return; }
+        $('#rewards-list').innerHTML = list.map(function(r){
+          return '' +
+          '<div class="card-item">' +
+            '<h4>' + r.Name + '</h4>' +
+            '<small>' + (r.Description || '') + '</small>' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">' +
+              '<span><strong>' + r.CostPoints + '</strong> pts</span>' +
+              '<button class="btn" data-rid="' + r.RewardID + '">Canjear</button>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+        $$('#rewards-list .btn').forEach(function(b){
+          b.addEventListener('click', function(){
+            if (!profile) return show('view-register');
+            var rid = b.dataset.rid;
+            var who = 'Docente';
+            google.script.run
+              .withSuccessHandler(function(res){
+                if (!res || !res.ok) return alert(res && res.error ? res.error : 'No se pudo canjear');
+                alert('¡Listo! Nuevo saldo: ' + res.newBalance + ' pts');
+                hydrateHome();
+              })
+              .withFailureHandler(function(err){ alert('Error en canje: ' + ((err && err.message) ? err.message : JSON.stringify(err))); })
+              .redeemReward(profile.studentId, rid, who);
+          });
+        });
+      }).listRewards();
+    }
+
+    /* ---------- Educación ---------- */
+    function loadContent(){
+      google.script.run.withSuccessHandler(function(list){
+        if (!list.length) { $('#content-list').innerHTML = '<p class="muted">Pronto agregaremos consejos.</p>'; return; }
+        $('#content-list').innerHTML = list.map(function(c){
+          return '' +
+          '<div class="content">' +
+            '<strong>' + (c.Category === 'tip' ? '💡 Consejo' : '📘 Dato') + ':</strong>' +
+            '<h4 style="margin:.25rem 0 .5rem">' + c.Title + '</h4>' +
+            '<p>' + (c.Body || '') + '</p>' +
+          '</div>';
+        }).join('');
+      }).getContent('all');
+    }
+
+    /* ---------- Docentes ---------- */
+    $('#btn-admin-login').addEventListener('click', function(){
+      var key = $('#admin-key').value.trim();
+      google.script.run
+        .withSuccessHandler(function(res){
+          if (!res || !res.ok) return alert(res && res.error ? res.error : 'No autorizado');
+          $('#admin-area').classList.remove('hidden');
+          renderAdmin(res);
+        })
+        .withFailureHandler(function(err){ alert('Error de panel: ' + ((err && err.message) ? err.message : JSON.stringify(err))); })
+        .getDashboardStats(key);
+    });
+    function renderAdmin(stats){
+      $('#kpi-total').innerHTML = '<div class="stat"><div>Depósitos registrados</div><strong>' + stats.totalDeposits + '</strong></div>';
+      if (window.google && google.charts) {
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(function(){
+          var data = new google.visualization.DataTable();
+          data.addColumn('string','Material');
+          data.addColumn('number','Cantidad');
+          var keys = Object.keys(stats.byMaterial || {});
+          if (keys.length === 0) {
+            data.addRows([['PLASTICO', 0]]);
+          } else {
+            var rows = keys.map(function(k){ return [k, Number(stats.byMaterial[k] || 0)]; });
+            data.addRows(rows);
+          }
+          var chart = new google.visualization.PieChart(document.getElementById('chart-by-mat'));
+          chart.draw(data, {pieHole:0.5, legend:{position:'bottom'}});
+        });
+      }
+      $('#top-students').innerHTML = stats.topStudents.map(function(r,i){
+        return '<div class="stat"><div>'+(i+1)+'. '+r.name+'</div><strong>'+r.points+' pts</strong></div>';
+      }).join('');
+      $('#top-classes').innerHTML = stats.topClasses.map(function(r,i){
+        return '<div class="stat"><div>'+(i+1)+'. '+r.class+'</div><strong>'+r.points+' pts</strong></div>';
+      }).join('');
+    }
+    $('#btn-export').addEventListener('click', function(){
+      var key = $('#admin-key').value.trim();
+      google.script.run
+        .withSuccessHandler(function(res){
+          if (!res || !res.ok) return alert(res && res.error ? res.error : 'No se pudo exportar');
+          alert('CSV creado. Ábrelo desde Drive:\n' + res.url);
+        })
+        .withFailureHandler(function(err){ alert('Error exportando CSV: ' + ((err && err.message) ? err.message : JSON.stringify(err))); })
+        .exportCSV(key);
+    });
+    $('#btn-roll-challenge').addEventListener('click', function(){
+      var ok = confirm('Esto cerrará el reto activo y creará el de la semana actual. ¿Continuar?');
+      if (!ok) return;
+      google.script.run
+        .withSuccessHandler(function(){ alert('Reto semanal creado/actualizado.'); })
+        .withFailureHandler(function(err){ alert('Error creando reto: ' + ((err && err.message) ? err.message : JSON.stringify(err))); })
+        .rollWeeklyChallenge();
+    });
+
+    /* ---------- Boot + Tema ---------- */
+    (function hydrateThemeAndBrand(){
+      // IMPORTANTE: usar <?!= ... ?> para no escapar el JSON
+      var s = <?!= JSON.stringify(initial.settings) ?>;
+      document.getElementById('schoolName').textContent = s.SCHOOL_NAME || 'Recicla App';
+      document.documentElement.style.setProperty('--primary', s.PRIMARY_COLOR || '#0DB65C');
+      document.documentElement.style.setProperty('--secondary', s.SECONDARY_COLOR || '#005B41');
+    })();
+
+    window.addEventListener('load', function(){
+      loadProfileFromLocal();
+      if (profile) { hydrateHome(); show('view-home'); }
+      else { show('view-register'); }
+    });
+  </script>
+</body>
+</html>
