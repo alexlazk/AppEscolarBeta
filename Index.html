@@ -10,10 +10,11 @@
       --primary:#0DB65C; --secondary:#005B41; --bg:#F6FFF9; --text:#1a1a1a; --muted:#5f6b63;
       --card:#fff; --soft:#f2fbf6; --radius:14px; --shadow:0 8px 30px rgba(0,0,0,.06);
     }
-    *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--text);background:var(--bg)}
-    .app-header{display:flex;gap:12px;align-items:center;padding:12px 16px;background:var(--card);box-shadow:var(--shadow);position:sticky;top:0;z-index:10}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;line-height:1.45;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+    .app-header{display:flex;gap:12px;align-items:center;padding:12px 16px;background:var(--card);box-shadow:var(--shadow);position:sticky;top:0;z-index:20}
     .logo{font-size:28px}.title h1{font-size:18px;margin:0}.title small{color:var(--muted)}
-    .container{padding:16px;padding-bottom:80px;max-width:980px;margin:0 auto}
+    .container{padding:16px 16px calc(96px + env(safe-area-inset-bottom));max-width:980px;margin:0 auto}
     .card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:16px}.card.soft{background:var(--soft)}
     .hidden{display:none}.btn{appearance:none;border:none;border-radius:12px;padding:12px 16px;background:#e6f4ec;cursor:pointer;font-weight:600}
     .btn.primary{background:var(--primary);color:#fff}.btn:active{transform:translateY(1px)}
@@ -30,9 +31,26 @@
     .list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
     .card-item{background:#fff;border-radius:12px;padding:12px;box-shadow:var(--shadow)} .card-item h4{margin:4px 0 6px} .card-item small{color:var(--muted)}
     .content-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px} .content{background:#fff;border-radius:12px;padding:12px;box-shadow:var(--shadow)}
-    .nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);display:flex;justify-content:space-around;padding:8px;box-shadow:0 -6px 22px rgba(0,0,0,.08)}
-    .nav-btn{background:transparent;border:none;padding:8px;font-size:18px}
+    .nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.94);display:flex;justify-content:space-around;gap:8px;padding:8px 16px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -6px 22px rgba(0,0,0,.08);backdrop-filter:blur(8px);z-index:30}
+    .nav-btn{flex:1;background:transparent;border:none;padding:10px 6px;font-size:16px;border-radius:12px;color:var(--muted)}
+    .nav-btn:focus-visible{outline:2px solid var(--primary)}
     .counter{display:flex;gap:10px;align-items:center;margin-top:8px} .challenge{margin-top:10px}
+    @media(max-width:720px){
+      .app-header{padding:10px 14px;gap:10px}
+      .logo{font-size:24px}
+      .title h1{font-size:16px}
+      .title small{font-size:12px}
+      .container{padding:14px 12px calc(92px + env(safe-area-inset-bottom))}
+      .card{padding:14px;margin-bottom:14px}
+      .form-grid{grid-template-columns:1fr;gap:8px}
+      input{font-size:16px}
+      .grid-2{gap:14px}
+      .list,.content-grid{grid-template-columns:1fr}
+      .stat{flex-direction:column;align-items:flex-start;gap:4px}
+      .qr-box{max-width:100%;margin-left:auto;margin-right:auto;padding:10px}
+      .nav{gap:4px;padding:8px 12px calc(12px + env(safe-area-inset-bottom))}
+      .nav-btn{font-size:14px;padding:10px 4px}
+    }
   </style>
 
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -174,6 +192,15 @@
       try { profile = JSON.parse(localStorage.getItem('recycle_profile') || 'null'); } catch(e){ profile = null; }
     }
     function saveProfileLocal(p) { localStorage.setItem('recycle_profile', JSON.stringify(p)); }
+    function finishProfileSetup(p, notice){
+      profile = p;
+      saveProfileLocal(profile);
+      hydrateHome();
+      show('view-home');
+      if (notice) {
+        setTimeout(function(){ alert(notice); }, 60);
+      }
+    }
 
     $('#btn-save-profile').addEventListener('click', function(){
       var p = {
@@ -189,15 +216,16 @@
       }
       google.script.run
         .withSuccessHandler(function(st){
-          if (!st) { alert('No se pudo guardar el perfil'); return; }
-          profile = p;
-          saveProfileLocal(profile);
-          hydrateHome();
-          show('view-home');
+          if (!st || st.ok === false) {
+            console.warn('Fallo al sincronizar perfil, usando almacenamiento local.', st);
+            finishProfileSetup(p, 'No pudimos sincronizar con la nube, pero tu perfil quedó guardado en este dispositivo.');
+            return;
+          }
+          finishProfileSetup(p);
         })
         .withFailureHandler(function(err){
-          var msg = (err && err.message) ? err.message : JSON.stringify(err);
-          alert('Error guardando perfil: ' + msg);
+          console.warn('Error guardando perfil, se continúa en modo local.', err);
+          finishProfileSetup(p, 'No pudimos conectar con el servidor, pero tu perfil quedó guardado en este dispositivo.');
         })
         .upsertStudent(p);
     });
