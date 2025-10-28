@@ -20,10 +20,11 @@ var SHEETS = {
 function doGet(e) {
   var tmpl = HtmlService.createTemplateFromFile('Index');
   tmpl.initial = { settings: getSettings_() };
-  return tmpl.evaluate()
-    .setTitle(getSetting_('SCHOOL_NAME') || 'Recicla App')
-    .setFaviconUrl('https://ssl.gstatic.com/docs/spreadsheets/favicon.ico')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  var html = tmpl.evaluate();
+  html.setTitle(getSetting_('SCHOOL_NAME') || 'Recicla App');
+  html.setFaviconUrl('https://ssl.gstatic.com/docs/spreadsheets/favicon.ico');
+  html.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  return html;
 }
 
 /* ------------------ Helpers Sheets ------------------ */
