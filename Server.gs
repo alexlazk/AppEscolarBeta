@@ -37,18 +37,28 @@ function getSheet_(name) {
 }
 function getSettings_() {
   var sh = getSheet_(SHEETS.SETTINGS);
-  var rows = sh.getDataRange().getValues();
+  var lastRow = sh.getLastRow();
+  if (lastRow === 0) return {};
+
+  var lastCol = sh.getLastColumn();
+  if (lastCol === 0) return {};
+
+  var rows = sh.getRange(1, 1, lastRow, lastCol).getDisplayValues();
   var obj = {};
   var i, j;
   for (i = 1; i < rows.length; i++) {
     var key = rows[i][0];
     if (!key) continue;
+
     var values = [];
     for (j = 1; j < rows[i].length; j++) {
-      var cell = rows[i][j];
-      if (cell === '' || cell === null) continue;
-      values.push(collapseWhitespace_(String(cell)));
+      var raw = rows[i][j];
+      if (!raw) continue;
+
+      var normalized = String(raw).replace(/\r\n?/g, '\n').trim();
+      if (normalized) values.push(normalized);
     }
+
     obj[String(key).trim()] = values.length ? values.join('\n') : '';
   }
   return obj;
@@ -74,7 +84,8 @@ function collapseWhitespace_(value){
 function splitConfigList_(raw){
   if (!raw && raw !== 0) return [];
   return String(raw)
-    .split(/[;\n,]/)
+    .replace(/\r\n?/g, '\n')
+    .split(/[;,\n]+/)
     .map(function(part){ return collapseWhitespace_(part); })
     .filter(function(part){ return part.length > 0; });
 }
