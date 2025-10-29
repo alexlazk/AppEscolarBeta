@@ -255,6 +255,24 @@ function logRecycling(payload){
   return {ok:true, pointsAwarded:points, challengeId:challengeId};
 }
 
+function getActiveChallenge(){
+  var ch = getActiveChallenge_();
+  if (!ch) return {ok:false, error:'No hay retos activos'};
+  return {
+    ok:true,
+    challenge:{
+      id: ch.ChallengeID,
+      title: ch.Title || ch.Type || 'Reto activo',
+      goal: Number(ch.Goal || getSetting_('WEEKLY_GOAL_DEPOSITS', 5)),
+      start: ch.StartDate,
+      end: ch.EndDate,
+      bonus: Number(ch.BonusPoints || getSetting_('WEEKLY_BONUS_POINTS', 20)),
+      description: ch.Description || '',
+      updatedAt: nowISO_()
+    }
+  };
+}
+
 function getActiveChallenge_(){
   var sh=getSheet_(SHEETS.CHALLENGES); if(sh.getLastRow()<2) return null;
   var headers=sh.getRange(1,1,1,8).getValues()[0]; var data=sh.getRange(2,1,sh.getLastRow()-1,8).getValues();
