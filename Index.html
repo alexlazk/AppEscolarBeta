@@ -62,7 +62,11 @@
     .nav{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(110deg,var(--primary) 0%,var(--primary-dark) 65%);display:flex;justify-content:space-around;gap:10px;padding:12px 22px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -12px 28px rgba(0,0,0,.16);backdrop-filter:blur(10px);z-index:30}
     .nav-btn{flex:1;background:transparent;border:none;padding:12px 8px;font-size:1rem;border-radius:14px;color:rgba(255,255,255,.8);font-weight:600;transition:background .2s,color .2s}
     .nav-btn.active,.nav-btn:focus-visible{background:rgba(255,255,255,.16);color:#fff;outline:2px solid transparent}
-    .counter{display:flex;gap:10px;align-items:center;margin-top:8px} .challenge{margin-top:10px}
+    .counter{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
+    .manual-entry{display:flex;gap:10px;align-items:flex-end;width:100%}
+    .manual-entry label{flex:1}
+    .manual-hint{display:block;margin-top:6px;color:var(--muted);font-size:.92em}
+    .challenge{margin-top:10px}
     @media(max-width:720px){
       body{font-size:clamp(16px,4.4vw,20px)}
       .app-header{padding:12px 16px;gap:12px}
@@ -80,7 +84,8 @@
       .grid-2{gap:20px}
       .counter{flex-direction:column;align-items:stretch}
       .counter label{flex:1}
-      .counter .btn{margin-top:8px}
+      .manual-entry{flex-direction:column;align-items:stretch}
+      .manual-entry .btn{margin-top:8px}
       .list,.content-grid{grid-template-columns:1fr}
       .stat{flex-direction:column;align-items:flex-start;gap:6px;font-size:1.05em}
       .qr-box{max-width:100%;margin-left:auto;margin-right:auto;padding:16px}
@@ -125,8 +130,12 @@
           <div id="qr-reader" class="qr-box hidden"></div>
           <div class="counter">
             <label>Cantidad <input id="deposit-count" type="number" min="1" value="1"></label>
-            <button class="btn" id="btn-log-manual">Registrar sin QR</button>
+            <div class="manual-entry">
+              <label>ID contenedor <input id="manual-container-id" placeholder="Ej: CT-101"></label>
+              <button class="btn" id="btn-log-manual">Registrar sin QR</button>
+            </div>
           </div>
+          <small class="manual-hint">¿No puedes escanear el código? Pídele a un docente que escriba el ID del contenedor aquí.</small>
           <div id="feedback" class="feedback"></div>
         </div>
         <div class="card soft">
@@ -308,17 +317,24 @@
       html5Scanner = new Html5Qrcode('qr-reader');
       Html5Qrcode.getCameras().then(function(devices){
         var camId = devices && devices[0] && devices[0].id;
-        if (!camId) throw new Error('No hay cámara disponible');
+        if (!devices || !devices.length || !camId) {
+          feedback('No encontramos una cámara disponible. Usa "Registrar sin QR".', true);
+          document.getElementById('qr-reader').classList.add('hidden');
+          html5Scanner = null;
+          return;
+        }
         html5Scanner.start(
           camId,
           { fps: 10, qrbox: {width: 250, height: 250} },
           onScanSuccess,
           function(){}
         ).catch(function(e){
-          feedback('No se pudo iniciar la cámara. Usa "Registrar sin QR".', true);
+          console.warn('No se pudo iniciar la cámara', e);
+          document.getElementById('qr-reader').classList.add('hidden');
+          html5Scanner = null;
         });
       }).catch(function(e){
-        feedback('No se pudo iniciar la cámara. Usa "Registrar sin QR".', true);
+        console.warn('Error obteniendo cámaras', e);
       });
     });
     function onScanSuccess(decodedText){
@@ -331,8 +347,14 @@
     }
     $('#btn-log-manual').addEventListener('click', function(){
       var count = Number($('#deposit-count').value || 1);
-      var fakeQR = 'RCP|PLASTICO|MANUAL|ESCUELA-001';
-      registerDeposit(fakeQR, count);
+      var containerInput = document.getElementById('manual-container-id');
+      var manualId = containerInput ? containerInput.value.trim().toUpperCase() : '';
+      if (!manualId) {
+        feedback('Ingresa el ID del contenedor que te compartió el docente.', true);
+        return;
+      }
+      var manualQR = 'RCP|PLASTICO|' + manualId + '|MANUAL';
+      registerDeposit(manualQR, count);
     });
 
     function feedback(msg, isError){
@@ -346,8 +368,16 @@
       if (!profile) return show('view-register');
       google.script.run
         .withSuccessHandler(function(res){
-          if (!res || !res.ok) return feedback(res && res.error ? res.error : 'Error al registrar', true);
+          if (!res || !res.ok) {
+            var errMsg = res && res.error ? res.error : 'Error al registrar';
+            if (/contenedor no registrado/i.test(errMsg)) {
+              errMsg = 'Contenedor no registrado. Verifica el ID con un docente.';
+            }
+            return feedback(errMsg, true);
+          }
           feedback('Registrado: +' + res.pointsAwarded + ' pts');
+          var manualBox = document.getElementById('manual-container-id');
+          if (manualBox) manualBox.value = '';
           hydrateHome();
         })
         .withFailureHandler(function(err){
