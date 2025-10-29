@@ -340,8 +340,19 @@ function getActiveChallenge_(){
 function getStudentWeeklyDeposits_(studentId,startDate,endDate){
   var sh=getSheet_(SHEETS.LOG); if(sh.getLastRow()<2) return 0;
   var headers=sh.getRange(1,1,1,11).getValues()[0]; var data=sh.getRange(2,1,sh.getLastRow()-1,11).getValues();
-  var sum=0,i; for(i=0;i<data.length;i++){ var r=toObj_(headers,data[i]), d=String(r.Timestamp).slice(0,10);
-    if(String(r.StudentID).trim()==String(studentId).trim() && d>=startDate && d<=endDate) sum+=Number(r.Count||0); }
+  var sum=0, target=String(studentId).trim();
+  for(var i=0;i<data.length;i++){
+    var r=toObj_(headers,data[i]);
+    if(String(r.StudentID).trim()!==target) continue;
+    var depositDate=normalizeSheetDate_(r.Timestamp);
+    if(!depositDate){
+      var raw=String(r.Timestamp||'');
+      depositDate=normalizeSheetDate_(raw.indexOf('T')>-1?raw.split('T')[0]:raw);
+    }
+    if(depositDate && depositDate>=startDate && depositDate<=endDate){
+      sum+=Number(r.Count||0);
+    }
+  }
   return sum;
 }
 
