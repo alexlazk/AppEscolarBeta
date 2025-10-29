@@ -34,6 +34,8 @@
     .card h3{margin:0;font-size:1.25em;line-height:1.3}
     .hidden{display:none}.btn{appearance:none;border:none;border-radius:14px;padding:12px 18px;background:var(--accent);color:var(--primary);cursor:pointer;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .2s,box-shadow .2s,background .2s,color .2s}
     .btn.primary{background:var(--primary);color:#fff}
+    .btn.outline{background:transparent;color:var(--primary);border:1px solid rgba(235,25,70,.4)}
+    .btn.outline:hover{background:rgba(235,25,70,.08);box-shadow:none;transform:none}
     .btn:hover{box-shadow:0 10px 26px rgba(235,25,70,.2);transform:translateY(-1px)}
     .btn:active{transform:translateY(0);box-shadow:none}
     .btn:focus-visible{outline:3px solid rgba(235,25,70,.35);outline-offset:2px}
@@ -44,8 +46,21 @@
     input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(235,25,70,.16)}
     .grid-2{display:grid;grid-template-columns:1fr;gap:20px}
     @media(min-width:960px){.grid-2{grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr)}}
-    .muted{color:var(--muted)} .feedback{margin-top:8px;min-height:24px;font-weight:600}
-    .qr-box{width:100%;max-width:420px;margin-top:12px;border:2px dashed rgba(235,25,70,.35);border-radius:14px;padding:12px;background:#fff}
+    .muted{color:var(--muted)} .feedback{margin-top:12px;min-height:24px;font-weight:600;padding:10px 14px;border-radius:12px;transition:opacity .3s,transform .3s;background:rgba(11,107,58,.08);color:#0b6b3a;border:1px solid rgba(11,107,58,.2);opacity:0;transform:translateY(-6px);display:flex;align-items:center;gap:8px}
+    .feedback.visible{opacity:1;transform:translateY(0)}
+    .feedback.error{background:rgba(179,38,30,.08);color:#b3261e;border-color:rgba(179,38,30,.25)}
+    .qr-box{width:100%;max-width:480px;margin-top:12px;border:2px dashed rgba(235,25,70,.35);border-radius:18px;padding:12px;background:#fff}
+    .scanner-shell{margin-top:14px;background:rgba(255,255,255,.92);border-radius:18px;border:1px solid rgba(235,25,70,.18);box-shadow:0 24px 50px rgba(0,0,0,.08);padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+    .scanner-shell.hidden{display:none}
+    .scanner-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+    .scanner-header strong{display:block;font-size:1.05em}
+    .scanner-header small{display:block;margin-top:2px;font-size:.92em;color:var(--muted)}
+    .scanner-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+    .camera-select{display:flex;flex-direction:column;gap:6px;font-size:.95em;color:var(--muted)}
+    .camera-select select{padding:10px 12px;border-radius:12px;border:1px solid var(--border);font-size:1em;min-width:200px}
+    .camera-select.hidden{display:none}
+    .icon-btn{appearance:none;border:1px solid rgba(235,25,70,.2);background:rgba(235,25,70,.12);color:var(--primary);border-radius:999px;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
+    .icon-btn:hover,.icon-btn:focus-visible{background:rgba(235,25,70,.22);color:var(--primary-dark);outline:none;box-shadow:0 8px 18px rgba(235,25,70,.18)}
     .stat{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#f1f4f9;border-radius:14px;border:1px solid var(--border);margin-bottom:10px;gap:12px}
     .progress{background:#e6ecf4;border-radius:999px;height:14px;overflow:hidden}
     .progress>div{height:100%;width:0;background:var(--primary);transition:width .4s}
@@ -60,8 +75,12 @@
     .content-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
     .content{background:#fff;border-radius:16px;padding:16px;box-shadow:var(--shadow);border:1px solid var(--border)}
     .nav{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(110deg,var(--primary) 0%,var(--primary-dark) 65%);display:flex;justify-content:space-around;gap:10px;padding:12px 22px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -12px 28px rgba(0,0,0,.16);backdrop-filter:blur(10px);z-index:30}
-    .nav-btn{flex:1;background:transparent;border:none;padding:12px 8px;font-size:1rem;border-radius:14px;color:rgba(255,255,255,.8);font-weight:600;transition:background .2s,color .2s}
-    .nav-btn.active,.nav-btn:focus-visible{background:rgba(255,255,255,.16);color:#fff;outline:2px solid transparent}
+    .nav-btn{flex:1;background:transparent;border:none;padding:10px 8px;border-radius:14px;color:rgba(255,255,255,.8);font-weight:600;transition:background .2s,color .2s;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.95rem;letter-spacing:.01em}
+    .nav-btn.active,.nav-btn:focus-visible{background:rgba(255,255,255,.22);color:#fff;outline:2px solid transparent;box-shadow:0 12px 24px rgba(0,0,0,.18)}
+    .nav-icon{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px}
+    .nav-icon svg{width:100%;height:100%;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .nav-icon svg *{fill:none}
+    .nav-label{line-height:1}
     .counter{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
     .manual-entry{display:flex;gap:10px;align-items:flex-end;width:100%}
     .manual-entry label{flex:1}
@@ -91,6 +110,11 @@
       .qr-box{max-width:100%;margin-left:auto;margin-right:auto;padding:16px}
       .nav{gap:8px;padding:12px 18px calc(20px + env(safe-area-inset-bottom))}
       .nav-btn{font-size:1.05em;padding:12px 6px}
+      .nav-icon{width:28px;height:28px}
+      .scanner-shell{padding:16px}
+      .scanner-actions{flex-direction:column;align-items:stretch}
+      .camera-select select{width:100%}
+      .icon-btn{background:rgba(235,25,70,.12);color:var(--primary)}
     }
   </style>
 
@@ -127,7 +151,23 @@
           <h3>Escanear y Registrar</h3>
           <p>Deposita plástico en el contenedor correcto y escanea el QR.</p>
           <button class="btn primary" id="btn-open-scanner">Abrir cámara</button>
-          <div id="qr-reader" class="qr-box hidden"></div>
+          <div id="scanner-shell" class="scanner-shell hidden">
+            <div class="scanner-header">
+              <div>
+                <strong>Escáner activo</strong>
+                <small id="scanner-status">Apunta al QR del contenedor para registrar tu depósito.</small>
+              </div>
+              <button class="icon-btn" id="btn-close-scanner" aria-label="Cerrar escáner">&times;</button>
+            </div>
+            <div id="qr-reader" class="qr-box"></div>
+            <div class="scanner-actions">
+              <label id="camera-select-wrapper" class="camera-select hidden">
+                Cámara
+                <select id="camera-select"></select>
+              </label>
+              <button class="btn outline" id="btn-refresh-camera" type="button">Reintentar cámara</button>
+            </div>
+          </div>
           <div class="counter">
             <label>Cantidad <input id="deposit-count" type="number" min="1" value="1"></label>
             <div class="manual-entry">
@@ -136,7 +176,7 @@
             </div>
           </div>
           <small class="manual-hint">¿No puedes escanear el código? Pídele a un docente que escriba el ID del contenedor aquí.</small>
-          <div id="feedback" class="feedback"></div>
+          <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
         </div>
         <div class="card soft">
           <h3>Mi Progreso</h3>
@@ -207,12 +247,68 @@
     </section>
 
     <nav class="nav">
-      <button class="nav-btn" data-go="view-home">Inicio</button>
-      <button class="nav-btn" data-go="view-challenges">Retos</button>
-      <button class="nav-btn" data-go="view-ranking">Ranking</button>
-      <button class="nav-btn" data-go="view-rewards">Recompensas</button>
-      <button class="nav-btn" data-go="view-learn">Aprende</button>
-      <button class="nav-btn" data-go="view-admin">Docentes</button>
+      <button class="nav-btn" data-go="view-home">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 10.5 12 4l9 6.5" />
+            <path d="M5.25 9.75V19.5A1.5 1.5 0 0 0 6.75 21h10.5a1.5 1.5 0 0 0 1.5-1.5V9.75" />
+            <path d="M9.25 21v-6.5h5.5V21" />
+          </svg>
+        </span>
+        <span class="nav-label">Inicio</span>
+      </button>
+      <button class="nav-btn" data-go="view-challenges">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M5 21V3" />
+            <path d="M5 4.5h9.25a1 1 0 0 1 .94 1.36L14 9l1.19 3.14a1 1 0 0 1-.94 1.36H5" />
+          </svg>
+        </span>
+        <span class="nav-label">Retos</span>
+      </button>
+      <button class="nav-btn" data-go="view-ranking">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 21h16" />
+            <path d="M7 21v-7.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1V21" />
+            <path d="M11 21V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v16" />
+            <path d="M15 21v-10a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1V21" />
+          </svg>
+        </span>
+        <span class="nav-label">Ranking</span>
+      </button>
+      <button class="nav-btn" data-go="view-rewards">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <rect x="4" y="9" width="16" height="11" rx="1.6" />
+            <path d="M4 9h16" />
+            <path d="M12 20V5.25" />
+            <path d="M7.5 6.5a2.5 2.5 0 1 1 4.5-1.5" />
+            <path d="M16.5 6.5a2.5 2.5 0 1 0-4.5-1.5" />
+          </svg>
+        </span>
+        <span class="nav-label">Recompensas</span>
+      </button>
+      <button class="nav-btn" data-go="view-learn">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 4 3 8l9 4 9-4-9-4z" />
+            <path d="M5 9v5l7 3 7-3V9" />
+            <path d="M19 10v6.5" />
+          </svg>
+        </span>
+        <span class="nav-label">Aprende</span>
+      </button>
+      <button class="nav-btn" data-go="view-admin">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 4.5 20 7v6c0 4.9-3.5 9.2-8 9.75C7.5 22.2 4 17.9 4 13V7l8-2.5z" />
+            <path d="M9.75 12.5a2.25 2.25 0 1 1 4.5 0" />
+            <path d="M8 17c1.1-1.2 2.5-1.8 4-1.8s2.9.6 4 1.8" />
+          </svg>
+        </span>
+        <span class="nav-label">Docentes</span>
+      </button>
     </nav>
   </main>
 
@@ -222,10 +318,29 @@
 
     var html5Scanner = null;
     var profile = null;
+    var cameraDevices = [];
+    var selectedCameraId = null;
+    var SCANNER_STORAGE_KEY = 'recycle_camera_preference';
+    var scannerShell = document.getElementById('scanner-shell');
+    var cameraSelect = document.getElementById('camera-select');
+    var cameraSelectWrapper = document.getElementById('camera-select-wrapper');
+    var scannerStatus = document.getElementById('scanner-status');
+    var closeScannerButton = document.getElementById('btn-close-scanner');
+    var refreshCameraButton = document.getElementById('btn-refresh-camera');
+    var feedbackBox = document.getElementById('feedback');
+    var feedbackTimer = null;
 
     function show(id){
       ['view-register','view-home','view-challenges','view-ranking','view-rewards','view-learn','view-admin']
         .forEach(function(v){ document.getElementById(v).classList.toggle('hidden', v !== id); });
+      if (id !== 'view-home') closeScanner();
+      setActiveNav(id);
+    }
+
+    function setActiveNav(id){
+      $$('.nav-btn').forEach(function(btn){
+        btn.classList.toggle('active', btn.dataset.go === id);
+      });
     }
 
     $$('.nav-btn').forEach(function(btn){
@@ -309,41 +424,31 @@
       }).getMySummary(profile.studentId);
     }
 
-    $('#btn-open-scanner').addEventListener('click', function(){
+    function openScanner(){
       if (!profile) return show('view-register');
-      var el = document.getElementById('qr-reader');
-      el.classList.remove('hidden');
-      if (html5Scanner) return;
-      html5Scanner = new Html5Qrcode('qr-reader');
-      Html5Qrcode.getCameras().then(function(devices){
-        var camId = devices && devices[0] && devices[0].id;
-        if (!devices || !devices.length || !camId) {
-          feedback('No encontramos una cámara disponible. Usa "Registrar sin QR".', true);
-          document.getElementById('qr-reader').classList.add('hidden');
-          html5Scanner = null;
-          return;
-        }
-        html5Scanner.start(
-          camId,
-          { fps: 10, qrbox: {width: 250, height: 250} },
-          onScanSuccess,
-          function(){}
-        ).catch(function(e){
-          console.warn('No se pudo iniciar la cámara', e);
-          document.getElementById('qr-reader').classList.add('hidden');
-          html5Scanner = null;
-        });
-      }).catch(function(e){
-        console.warn('Error obteniendo cámaras', e);
+      if (!scannerShell) return;
+      scannerShell.classList.remove('hidden');
+      if (scannerStatus) scannerStatus.textContent = 'Preparando cámara...';
+      loadAndStartCamera();
+    }
+
+    $('#btn-open-scanner').addEventListener('click', openScanner);
+    if (closeScannerButton) closeScannerButton.addEventListener('click', function(){ closeScanner(); });
+    if (cameraSelect) {
+      cameraSelect.addEventListener('change', function(){ startCamera(cameraSelect.value || null); });
+    }
+    if (refreshCameraButton) {
+      refreshCameraButton.addEventListener('click', function(){
+        localStorage.removeItem(SCANNER_STORAGE_KEY);
+        selectedCameraId = null;
+        loadAndStartCamera();
       });
-    });
+    }
+
     function onScanSuccess(decodedText){
       var count = Number($('#deposit-count').value || 1);
       registerDeposit(decodedText, count);
-      html5Scanner.stop().then(function(){
-        document.getElementById('qr-reader').classList.add('hidden');
-        html5Scanner = null;
-      });
+      closeScanner();
     }
     $('#btn-log-manual').addEventListener('click', function(){
       var count = Number($('#deposit-count').value || 1);
@@ -358,10 +463,131 @@
     });
 
     function feedback(msg, isError){
-      var box = $('#feedback');
-      box.textContent = msg;
-      box.style.color = isError ? '#b3261e' : '#0b6b3a';
-      if (!isError) { box.textContent += ' !'; }
+      if (!feedbackBox) return;
+      if (feedbackTimer) clearTimeout(feedbackTimer);
+      feedbackBox.textContent = msg || '';
+      feedbackBox.classList.toggle('error', !!isError && !!msg);
+      if (msg) {
+        if (!isError) feedbackBox.textContent = msg + ' ✅';
+        feedbackBox.classList.add('visible');
+        feedbackTimer = setTimeout(function(){
+          feedbackBox.classList.remove('visible', 'error');
+          feedbackBox.textContent = '';
+        }, isError ? 6000 : 3500);
+      } else {
+        feedbackBox.classList.remove('visible', 'error');
+      }
+    }
+
+    function closeScanner(){
+      if (scannerShell) scannerShell.classList.add('hidden');
+      if (cameraSelect) cameraSelect.disabled = false;
+      stopScanner();
+    }
+
+    function stopScanner(){
+      if (!html5Scanner) return Promise.resolve();
+      var instance = html5Scanner;
+      html5Scanner = null;
+      return instance.stop().then(function(){
+        try { instance.clear(); } catch(e) {}
+      }).catch(function(err){
+        console.warn('No se pudo detener la cámara', err);
+      });
+    }
+
+    function loadAndStartCamera(){
+      if (typeof Html5Qrcode === 'undefined') {
+        feedback('La biblioteca de escaneo no está disponible.', true);
+        return;
+      }
+      Html5Qrcode.getCameras().then(function(devices){
+        cameraDevices = devices || [];
+        if (!cameraDevices.length) {
+          if (scannerStatus) scannerStatus.textContent = 'No encontramos una cámara disponible.';
+          feedback('No encontramos una cámara disponible. Usa "Registrar sin QR".', true);
+          if (cameraSelectWrapper) cameraSelectWrapper.classList.add('hidden');
+          return stopScanner();
+        }
+        var stored = localStorage.getItem(SCANNER_STORAGE_KEY);
+        var bestCam = determineBestCamera(cameraDevices, stored);
+        populateCameraSelect(cameraDevices, bestCam);
+        startCamera(bestCam);
+      }).catch(function(err){
+        console.warn('Error obteniendo cámaras', err);
+        if (scannerStatus) scannerStatus.textContent = 'No pudimos acceder a la cámara.';
+        feedback('No pudimos acceder a la cámara. Usa "Registrar sin QR".', true);
+      });
+    }
+
+    function determineBestCamera(devices, stored){
+      if (stored && devices.some(function(d){ return d.id === stored; })) return stored;
+      var backCam = devices.find(function(d){ return /back|rear|environment/i.test(d.label || ''); });
+      if (backCam) return backCam.id;
+      return devices[0] ? devices[0].id : null;
+    }
+
+    function populateCameraSelect(devices, selected){
+      if (!cameraSelect) return;
+      cameraSelect.innerHTML = '';
+      if (!devices || !devices.length) {
+        if (cameraSelectWrapper) cameraSelectWrapper.classList.add('hidden');
+        return;
+      }
+      var autoOption = document.createElement('option');
+      autoOption.value = '';
+      autoOption.textContent = devices.length > 1 ? 'Automática (recomendada)' : (devices[0].label || 'Cámara');
+      cameraSelect.appendChild(autoOption);
+      devices.forEach(function(device, index){
+        var option = document.createElement('option');
+        option.value = device.id;
+        option.textContent = device.label || ('Cámara ' + (index + 1));
+        cameraSelect.appendChild(option);
+      });
+      if (cameraSelectWrapper) {
+        if (devices.length > 1) {
+          cameraSelectWrapper.classList.remove('hidden');
+        } else {
+          cameraSelectWrapper.classList.add('hidden');
+        }
+      }
+      if (selected && devices.some(function(d){ return d.id === selected; })) {
+        cameraSelect.value = selected;
+      } else {
+        cameraSelect.value = '';
+      }
+    }
+
+    function startCamera(cameraId){
+      if (cameraSelect) cameraSelect.disabled = true;
+      selectedCameraId = cameraId || null;
+      if (selectedCameraId) {
+        localStorage.setItem(SCANNER_STORAGE_KEY, selectedCameraId);
+      } else {
+        localStorage.removeItem(SCANNER_STORAGE_KEY);
+      }
+      if (scannerStatus) scannerStatus.textContent = 'Activando cámara...';
+      var startParam = selectedCameraId ? selectedCameraId : { facingMode: 'environment' };
+      stopScanner().then(function(){
+        if (scannerShell && scannerShell.classList.contains('hidden')) {
+          if (cameraSelect) cameraSelect.disabled = false;
+          return;
+        }
+        html5Scanner = new Html5Qrcode('qr-reader');
+        var boxSize = Math.min(360, Math.round(window.innerWidth * 0.75));
+        var config = { fps: 12, qrbox: { width: boxSize, height: boxSize }, aspectRatio: window.innerWidth < 720 ? 1.4 : 1.0 };
+        html5Scanner.start(startParam, config, onScanSuccess, function(){
+          if (scannerStatus) scannerStatus.textContent = 'Intentando leer el QR...';
+        }).then(function(){
+          if (scannerStatus) scannerStatus.textContent = 'Escanea el QR del contenedor.';
+          if (cameraSelect) cameraSelect.disabled = false;
+        }).catch(function(err){
+          console.warn('No se pudo iniciar la cámara', err);
+          if (cameraSelect) cameraSelect.disabled = false;
+          if (scannerStatus) scannerStatus.textContent = 'No se pudo iniciar la cámara.';
+          feedback('No se pudo iniciar la cámara. Usa "Registrar sin QR".', true);
+        });
+      });
     }
 
     function registerDeposit(qrText, count){
@@ -412,6 +638,8 @@
       google.script.run.withSuccessHandler(function(list){ renderRank('#rank-group', list, 'Grupo'); }).getLeaderboard('group');
 
       $$('.tab').forEach(function(t){
+        if (t.dataset.bound === '1') return;
+        t.dataset.bound = '1';
         t.addEventListener('click', function(){
           $$('.tab').forEach(function(x){ x.classList.remove('active'); });
           t.classList.add('active');
