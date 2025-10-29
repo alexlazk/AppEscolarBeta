@@ -38,8 +38,19 @@ function getSheet_(name) {
 function getSettings_() {
   var sh = getSheet_(SHEETS.SETTINGS);
   var rows = sh.getDataRange().getValues();
-  var obj = {}; var i;
-  for (i=1;i<rows.length;i++){ var k=rows[i][0], v=rows[i][1]; if(k) obj[String(k).trim()]=v; }
+  var obj = {};
+  var i, j;
+  for (i = 1; i < rows.length; i++) {
+    var key = rows[i][0];
+    if (!key) continue;
+    var values = [];
+    for (j = 1; j < rows[i].length; j++) {
+      var cell = rows[i][j];
+      if (cell === '' || cell === null) continue;
+      values.push(collapseWhitespace_(String(cell)));
+    }
+    obj[String(key).trim()] = values.length ? values.join('\n') : '';
+  }
   return obj;
 }
 function getSetting_(key, fallback){ if(typeof fallback==='undefined') fallback='';
@@ -56,15 +67,69 @@ function findRowIndexByValue_(sh, col, value){
 }
 
 /* ========== Seguridad simple ========== */
+function collapseWhitespace_(value){
+  return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+function splitConfigList_(raw){
+  if (!raw && raw !== 0) return [];
+  return String(raw)
+    .split(/[;\n,]/)
+    .map(function(part){ return collapseWhitespace_(part); })
+    .filter(function(part){ return part.length > 0; });
+}
+
+function getAdminAuthState_(email, adminKeyProvided){
+  var allowedEmails = splitConfigList_(getSetting_('ADMIN_EMAILS', ''))
+    .map(function(e){ return e.toLowerCase(); });
+  var adminKeys = splitConfigList_(getSetting_('ADMIN_KEY', ''));
+  var providedKey = collapseWhitespace_(adminKeyProvided);
+  var providedKeyLower = providedKey.toLowerCase();
+
+  var userEmail = collapseWhitespace_(email);
+  if (!userEmail) {
+    try {
+      userEmail = collapseWhitespace_((Session.getActiveUser() && Session.getActiveUser().getEmail()) || '');
+    } catch (err) {
+      userEmail = '';
+    }
+  }
+  var userEmailLower = userEmail.toLowerCase();
+
+  var byEmail = userEmail && allowedEmails.indexOf(userEmailLower) !== -1;
+  var byKey = false;
+  if (providedKey) {
+    byKey = adminKeys.some(function(key){
+      var normalized = collapseWhitespace_(key);
+      return normalized && (normalized === providedKey || normalized.toLowerCase() === providedKeyLower);
+    });
+  }
+
+  return {
+    allowed: byEmail || byKey,
+    byEmail: byEmail,
+    byKey: byKey,
+    providedKey: providedKey,
+    configured: allowedEmails.length > 0 || adminKeys.length > 0
+  };
+}
+
+function validateAdminAccess_(adminKeyProvided){
+  var state = getAdminAuthState_('', adminKeyProvided);
+  if (state.allowed) {
+    return {ok:true, method: state.byEmail ? 'email' : 'key'};
+  }
+  if (!state.configured) {
+    return {ok:false,error:'No hay docentes configurados. Define ADMIN_EMAILS o ADMIN_KEY en Settings.'};
+  }
+  if (state.providedKey) {
+    return {ok:false,error:'Clave docente incorrecta.'};
+  }
+  return {ok:false,error:'No autorizado'};
+}
+
 function isAdmin_(email, adminKeyProvided){
-  var emails=String(getSetting_('ADMIN_EMAILS','')).split(';'); var i;
-  for(i=0;i<emails.length;i++){ emails[i]=String(emails[i]).trim().toLowerCase(); if(!emails[i]){ emails.splice(i,1); i--; } }
-  var adminKey=String(getSetting_('ADMIN_KEY','')).trim();
-  var userEmail=''; try{ userEmail=(Session.getActiveUser()&&Session.getActiveUser().getEmail())||''; }catch(e){}
-  userEmail=String(userEmail).toLowerCase();
-  var byEmail=userEmail&&emails.indexOf(userEmail)!==-1;
-  var byKey=adminKeyProvided&&(String(adminKeyProvided).trim()===adminKey);
-  return byEmail||byKey;
+  return getAdminAuthState_(email, adminKeyProvided).allowed;
 }
 
 /* ========== Estudiantes ========== */
@@ -186,7 +251,8 @@ function getContent(type){
 
 /* ========== Reportes ========== */
 function getDashboardStats(adminKey){
-  if(!isAdmin_('',adminKey)) return {ok:false,error:'No autorizado'};
+  var auth = validateAdminAccess_(adminKey);
+  if(!auth.ok) return auth;
   var sh=getSheet_(SHEETS.LOG), total=sh.getLastRow()>1?sh.getLastRow()-1:0, byMat={};
   if(total>0){ var headers=sh.getRange(1,1,1,11).getValues()[0], data=sh.getRange(2,1,sh.getLastRow()-1,11).getValues(), i;
     for(i=0;i<data.length;i++){ var r=toObj_(headers,data[i]); var m=r.Material; byMat[m]=(byMat[m]||0)+Number(r.Count||0); } }
@@ -194,7 +260,8 @@ function getDashboardStats(adminKey){
 }
 
 function exportCSV(adminKey){
-  if(!isAdmin_('',adminKey)) return {ok:false,error:'No autorizado'};
+  var auth = validateAdminAccess_(adminKey);
+  if(!auth.ok) return auth;
   var sh=getSheet_(SHEETS.LOG); if(sh.getLastRow()<1) return {ok:false,error:'Sin datos'};
   var values=sh.getDataRange().getDisplayValues(), lines=[], i,j;
   for(i=0;i<values.length;i++){ var row=values[i]; for(j=0;j<row.length;j++){ var x=String(row[j]);
