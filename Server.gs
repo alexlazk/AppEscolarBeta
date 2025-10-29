@@ -10,7 +10,8 @@ var SHEETS = {
   CHALLENGES: 'Challenges',
   REWARDS: 'Rewards',
   REDEMPTIONS: 'Redemptions',
-  CONTENT: 'Content'
+  CONTENT: 'Content',
+  MANUAL_REQUESTS: 'ManualRequests'
 };
 
 function doGet(e) {
@@ -304,6 +305,23 @@ function logRecycling(payload){
   var shS=getSheet_(SHEETS.STUDENTS), idxS=findRowIndexByValue_(shS,1,studentId);
   if(idxS>0){ var curr=Number(shS.getRange(idxS,6).getValue()||0); shS.getRange(idxS,6).setValue(curr+points); shS.getRange(idxS,8).setValue(ts); }
   return {ok:true, pointsAwarded:points, challengeId:challengeId};
+}
+
+function requestContainerValidation(payload){
+  payload = payload || {};
+  var studentId = collapseWhitespace_(payload.studentId);
+  var containerId = collapseWhitespace_(payload.containerId);
+  var count = Math.max(1, Number(payload.count || 1));
+  if (!studentId) return {ok:false,error:'Perfil no encontrado en este dispositivo.'};
+  if (!containerId) return {ok:false,error:'Indica el ID del contenedor.'};
+  var st = getStudent(studentId);
+  if (!st) return {ok:false,error:'Estudiante no registrado en la app.'};
+  var sh = getSheet_(SHEETS.MANUAL_REQUESTS);
+  if (sh.getLastRow() === 0) {
+    sh.appendRow(['Timestamp','StudentID','StudentName','Group','Class','ContainerID','Count','Status']);
+  }
+  sh.appendRow([nowISO_(), studentId, st.Name, st.Group, st.Class, containerId, count, 'PENDING']);
+  return {ok:true};
 }
 
 function getActiveChallenge(){

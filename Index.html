@@ -127,6 +127,13 @@
             <label>Cantidad <input id="deposit-count" type="number" min="1" value="1"></label>
             <button class="btn" id="btn-log-manual">Registrar sin QR</button>
           </div>
+          <div id="manual-form" class="hidden" style="width:100%;display:flex;flex-direction:column;gap:10px;">
+            <label>ID del contenedor
+              <input id="manual-container-id" placeholder="Ej: CONT-001" autocomplete="off">
+            </label>
+            <small class="muted">Si el QR no aparece en la app, pídele a un profesor que valide este ID. Nosotros enviaremos la solicitud.</small>
+            <button class="btn" id="btn-submit-manual">Enviar solicitud a docente</button>
+          </div>
           <div id="feedback" class="feedback"></div>
         </div>
         <div class="card soft">
@@ -289,11 +296,20 @@
         $('#myPoints').textContent = res.points;
         $('#myDeposits').textContent = res.deposits;
         if (res.challenge) {
-          var goal = res.challenge.goal, done = res.challenge.done, start = res.challenge.start, end = res.challenge.end, bonus = res.challenge.bonus;
-          var pct = Math.min(100, Math.round((done/goal)*100));
-          $('#ch-progress').style.width = pct + '%';
-          $('#ch-text').textContent = 'Lleva ' + done + '/' + goal + '. Semana ' + start + ' a ' + end + '. Bono +' + bonus + ' pts.';
-          $('#challengeBox').classList.remove('hidden');
+          var goal = Number(res.challenge.goal || 0);
+          var done = Number(res.challenge.done || 0);
+          var start = res.challenge.start;
+          var end = res.challenge.end;
+          var bonus = Number(res.challenge.bonus || 0);
+          var pct = goal > 0 ? Math.min(100, Math.round((done / goal) * 100)) : 0;
+          var bar = document.getElementById('ch-progress');
+          bar.style.width = pct + '%';
+          bar.setAttribute('aria-valuenow', pct);
+          var text = goal > 0
+            ? ('Lleva ' + done + ' de ' + goal + ' depósitos. Semana ' + start + ' a ' + end + '. Bono +' + bonus + ' pts.')
+            : ('Reto activo del ' + start + ' al ' + end + '. Bono +' + bonus + ' pts.');
+          document.getElementById('ch-text').textContent = text;
+          document.getElementById('challengeBox').classList.remove('hidden');
         } else {
           $('#challengeBox').classList.add('hidden');
         }
@@ -313,12 +329,12 @@
           camId,
           { fps: 10, qrbox: {width: 250, height: 250} },
           onScanSuccess,
-          function(){}
+          function(){ }
         ).catch(function(e){
-          feedback('No se pudo iniciar la cámara. Usa "Registrar sin QR".', true);
+          handleCameraIssue(e);
         });
       }).catch(function(e){
-        feedback('No se pudo iniciar la cámara. Usa "Registrar sin QR".', true);
+        handleCameraIssue(e);
       });
     });
     function onScanSuccess(decodedText){
@@ -330,24 +346,74 @@
       });
     }
     $('#btn-log-manual').addEventListener('click', function(){
+      if (!profile) return show('view-register');
+      toggleManualForm();
+    });
+    $('#btn-submit-manual').addEventListener('click', function(){
+      if (!profile) return show('view-register');
       var count = Number($('#deposit-count').value || 1);
-      var fakeQR = 'RCP|PLASTICO|MANUAL|ESCUELA-001';
-      registerDeposit(fakeQR, count);
+      submitManualRequest(count);
     });
 
     function feedback(msg, isError){
       var box = $('#feedback');
-      box.textContent = msg;
+      box.textContent = msg || '';
       box.style.color = isError ? '#b3261e' : '#0b6b3a';
-      if (!isError) { box.textContent += ' !'; }
+    }
+
+    function toggleManualForm(forceShow, prefill){
+      var form = document.getElementById('manual-form');
+      var shouldShow = typeof forceShow === 'boolean' ? forceShow : form.classList.contains('hidden');
+      form.classList.toggle('hidden', !shouldShow);
+      if (shouldShow) {
+        if (prefill) { document.getElementById('manual-container-id').value = prefill; }
+        setTimeout(function(){ document.getElementById('manual-container-id').focus(); }, 50);
+      } else {
+        document.getElementById('manual-container-id').value = '';
+      }
+    }
+
+    function submitManualRequest(count){
+      var containerId = document.getElementById('manual-container-id').value.trim();
+      if (!containerId) {
+        feedback('Ingresa el ID del contenedor para avisar a un docente.', true);
+        return;
+      }
+      google.script.run
+        .withSuccessHandler(function(res){
+          if (!res || !res.ok) {
+            feedback(res && res.error ? res.error : 'No se pudo enviar la solicitud.', true);
+            return;
+          }
+          feedback('Solicitud enviada. Un docente validará el contenedor.');
+          toggleManualForm(false);
+        })
+        .withFailureHandler(function(err){
+          var msg = (err && err.message) ? err.message : JSON.stringify(err);
+          feedback('Error al enviar la solicitud: ' + msg, true);
+        })
+        .requestContainerValidation({
+          studentId: profile.studentId,
+          containerId: containerId,
+          count: count
+        });
     }
 
     function registerDeposit(qrText, count){
       if (!profile) return show('view-register');
       google.script.run
         .withSuccessHandler(function(res){
-          if (!res || !res.ok) return feedback(res && res.error ? res.error : 'Error al registrar', true);
+          if (!res || !res.ok) {
+            var errMsg = res && res.error ? res.error : 'Error al registrar';
+            feedback(errMsg, true);
+            if (errMsg && errMsg.indexOf('Contenedor no registrado') !== -1) {
+              var containerId = parseContainerFromQR(qrText);
+              toggleManualForm(true, containerId);
+            }
+            return;
+          }
           feedback('Registrado: +' + res.pointsAwarded + ' pts');
+          toggleManualForm(false);
           hydrateHome();
         })
         .withFailureHandler(function(err){
@@ -355,6 +421,19 @@
           feedback('Error: ' + msg, true);
         })
         .logRecycling({ qrText: qrText, studentId: profile.studentId, count: count });
+    }
+
+    function parseContainerFromQR(text){
+      try {
+        var parts = String(text || '').split('|');
+        if (parts.length >= 3) return parts[2];
+      } catch(e){}
+      return '';
+    }
+
+    function handleCameraIssue(err){
+      console.warn('Camera warning', err);
+      feedback('Si la cámara tarda en iniciar, espera unos segundos o usa el registro manual.', false);
     }
 
     function loadChallenges(){
