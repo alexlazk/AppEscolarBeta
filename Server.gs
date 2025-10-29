@@ -329,7 +329,7 @@ function getActiveChallenge_(){
   var headers=sh.getRange(1,1,1,8).getValues()[0]; var data=sh.getRange(2,1,sh.getLastRow()-1,8).getValues();
   var today=Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'yyyy-MM-dd'); var i;
   for(i=0;i<data.length;i++){ var ch=toObj_(headers,data[i]);
-    if(String(ch.Status).toUpperCase()!=='ACTIVE') continue;
+    if(String(ch.Status||'').trim().toUpperCase()!=='ACTIVE') continue;
     var start=normalizeSheetDate_(ch.StartDate);
     var end=normalizeSheetDate_(ch.EndDate);
     if(!start || !end) continue;
