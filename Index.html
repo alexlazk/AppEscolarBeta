@@ -9,32 +9,37 @@
     :root{
       --primary:#eb1946;
       --primary-dark:#c2173a;
-      --secondary:#00293f;
+      --secondary:#01263b;
       --accent:#f9dce3;
-      --bg:#f6f8fb;
+      --accent-strong:#ffe3eb;
+      --bg:#f4f7fb;
       --surface:#ffffff;
       --surface-soft:#fdf2f5;
-      --text:#17212b;
-      --muted:#516073;
-      --border:#e1e7ef;
+      --text:#162433;
+      --muted:#526173;
+      --border:#dfe5ef;
       --radius:16px;
-      --shadow:0 16px 40px rgba(0,0,0,.06);
+      --shadow:0 18px 45px rgba(14,34,56,.08);
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;line-height:1.5;color:var(--text);background:linear-gradient(180deg,#ffffff 0%,#f6f8fb 65%);-webkit-font-smoothing:antialiased;font-size:clamp(15px,1.6vw,18px)}
-    .app-header{display:flex;gap:16px;align-items:center;padding:14px 20px;background:linear-gradient(110deg,var(--primary) 0%,var(--primary-dark) 70%);box-shadow:var(--shadow);position:sticky;top:0;z-index:20;color:#fff}
+    body{margin:0;font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,Arial;line-height:1.5;color:var(--text);background:linear-gradient(180deg,#ffffff 0%,#f4f7fb 65%);-webkit-font-smoothing:antialiased;font-size:clamp(15px,1.6vw,18px);transition:background .4s ease,color .4s ease}
+    body.modal-open{overflow:hidden;touch-action:none}
+    .app-header{display:flex;gap:16px;align-items:center;padding:14px 20px;background:linear-gradient(110deg,var(--primary) 0%,var(--primary-dark) 70%);box-shadow:var(--shadow);position:sticky;top:0;z-index:40;color:#fff}
     .logo{display:flex;align-items:center}
     .logo img{height:52px;width:auto}
     .title h1{font-size:1.1rem;margin:0;color:#fff}
     .title small{display:block;margin-top:4px;font-size:.85rem;color:rgba(255,255,255,.82)}
-    main.container{padding:24px 20px calc(110px + env(safe-area-inset-bottom));max-width:1040px;margin:0 auto;display:grid;gap:24px}
-    .card{background:var(--surface);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);border:1px solid var(--border);display:flex;flex-direction:column;gap:16px}
+    main.container{padding:28px 24px calc(120px + env(safe-area-inset-bottom));max-width:1080px;margin:0 auto;display:grid;gap:26px}
+    .card{background:var(--surface);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);border:1px solid rgba(13,32,53,.04);display:flex;flex-direction:column;gap:18px;backdrop-filter:saturate(160%) blur(6px)}
     .card.soft{background:var(--surface-soft);border-color:rgba(235,25,70,.25)}
     .card h2{margin:0;font-size:1.45em;line-height:1.25}
     .card h3{margin:0;font-size:1.25em;line-height:1.3}
-    .hidden{display:none}.btn{appearance:none;border:none;border-radius:14px;padding:12px 18px;background:var(--accent);color:var(--primary);cursor:pointer;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .2s,box-shadow .2s,background .2s,color .2s}
-    .btn.primary{background:var(--primary);color:#fff}
-    .btn:hover{box-shadow:0 10px 26px rgba(235,25,70,.2);transform:translateY(-1px)}
+    .hidden{display:none}
+    .btn{appearance:none;border:none;border-radius:14px;padding:12px 18px;background:var(--accent);color:var(--primary);cursor:pointer;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .2s,box-shadow .2s,background .2s,color .2s}
+    .btn.primary{background:var(--primary);color:#fff;box-shadow:0 14px 28px rgba(235,25,70,.25)}
+    .btn.secondary{background:var(--surface);color:var(--secondary);border:1px solid rgba(1,38,59,.12)}
+    .btn.icon-only{width:48px;height:48px;padding:0;border-radius:50%;background:var(--accent-strong)}
+    .btn:hover{box-shadow:0 12px 28px rgba(235,25,70,.18);transform:translateY(-1px)}
     .btn:active{transform:translateY(0);box-shadow:none}
     .btn:focus-visible{outline:3px solid rgba(235,25,70,.35);outline-offset:2px}
     .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:8px 0 8px}
@@ -45,7 +50,6 @@
     .grid-2{display:grid;grid-template-columns:1fr;gap:20px}
     @media(min-width:960px){.grid-2{grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr)}}
     .muted{color:var(--muted)} .feedback{margin-top:8px;min-height:24px;font-weight:600}
-    .qr-box{width:100%;max-width:420px;margin-top:12px;border:2px dashed rgba(235,25,70,.35);border-radius:14px;padding:12px;background:#fff}
     .stat{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#f1f4f9;border-radius:14px;border:1px solid var(--border);margin-bottom:10px;gap:12px}
     .progress{background:#e6ecf4;border-radius:999px;height:14px;overflow:hidden}
     .progress>div{height:100%;width:0;background:var(--primary);transition:width .4s}
@@ -59,33 +63,54 @@
     .card-item small{color:var(--muted)}
     .content-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
     .content{background:#fff;border-radius:16px;padding:16px;box-shadow:var(--shadow);border:1px solid var(--border)}
-    .nav{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(110deg,var(--primary) 0%,var(--primary-dark) 65%);display:flex;justify-content:space-around;gap:10px;padding:12px 22px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -12px 28px rgba(0,0,0,.16);backdrop-filter:blur(10px);z-index:30}
-    .nav-btn{flex:1;background:transparent;border:none;padding:12px 8px;font-size:1rem;border-radius:14px;color:rgba(255,255,255,.8);font-weight:600;transition:background .2s,color .2s}
-    .nav-btn.active,.nav-btn:focus-visible{background:rgba(255,255,255,.16);color:#fff;outline:2px solid transparent}
-    .counter{display:flex;gap:10px;align-items:center;margin-top:8px} .challenge{margin-top:10px}
+    .nav{position:fixed;bottom:0;left:0;right:0;background:rgba(0,26,44,.92);display:flex;justify-content:space-around;gap:10px;padding:12px 22px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -18px 32px rgba(3,24,42,.38);backdrop-filter:blur(14px) saturate(160%);z-index:45}
+    .nav-btn{flex:1;background:transparent;border:none;padding:10px 6px;font-size:.95rem;border-radius:16px;color:rgba(255,255,255,.74);font-weight:600;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;transition:background .2s ease,color .2s ease,transform .2s ease}
+    .nav-btn .icon{font-size:1.35rem;line-height:1}
+    .nav-btn .label{white-space:nowrap}
+    .nav-btn.active,.nav-btn:focus-visible{background:rgba(255,255,255,.15);color:#fff;outline:2px solid transparent;transform:translateY(-2px)}
+    .counter{display:flex;gap:10px;align-items:center;margin-top:8px}
+    .challenge{margin-top:10px}
+    .scanner-modal{position:fixed;inset:0;background:rgba(6,20,33,.62);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px;z-index:60;transition:opacity .25s ease,visibility .25s ease}
+    .scanner-modal.hidden{opacity:0;visibility:hidden;pointer-events:none}
+    .scanner-dialog{width:min(540px,100%);background:var(--surface);border-radius:22px;padding:22px;box-shadow:0 28px 60px rgba(5,22,40,.25);display:flex;flex-direction:column;gap:16px;position:relative;max-height:90vh;overflow:auto}
+    .scanner-dialog header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .scanner-dialog h3{margin:0;font-size:1.35rem}
+    .scanner-dialog p{margin:0;color:var(--muted)}
+    .scanner-controls{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+    .scanner-controls label{flex:1}
+    .scanner-controls select{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:#fff;font-size:1rem;appearance:none}
+    .scanner-controls button{align-self:center}
+    .qr-view{width:100%;min-height:260px;border-radius:18px;background:#0f1a2c;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+    .qr-view video{width:100%!important;height:100%!important;object-fit:cover;border-radius:18px}
+    .qr-overlay{position:absolute;inset:10%;border:2px dashed rgba(255,255,255,.7);border-radius:20px;pointer-events:none}
+    .scanner-status{font-size:.95rem;color:var(--muted);min-height:24px}
+    .scanner-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+    .toast-success{background:rgba(11,107,58,.12);color:#0b6b3a;padding:10px 14px;border-radius:12px;font-weight:600}
     @media(max-width:720px){
       body{font-size:clamp(16px,4.4vw,20px)}
       .app-header{padding:12px 16px;gap:12px}
       .logo img{height:44px}
       .title h1{font-size:1.25em}
       .title small{font-size:.95em}
-      main.container{padding:20px 16px calc(120px + env(safe-area-inset-bottom));gap:20px}
+      main.container{padding:20px 16px calc(130px + env(safe-area-inset-bottom));gap:20px}
       .card{padding:20px}
       .card h2{font-size:1.55em}
       .card h3{font-size:1.3em}
       label{font-size:1em}
       .form-grid{grid-template-columns:1fr;gap:12px}
-      input{font-size:1.05em}
-      .btn{width:100%;font-size:1.08em;padding:14px 20px}
+      input,select{font-size:1.05em}
+      .btn{width:100%;font-size:1.05em;padding:14px 20px}
+      .btn.icon-only{width:46px;height:46px}
       .grid-2{gap:20px}
       .counter{flex-direction:column;align-items:stretch}
       .counter label{flex:1}
       .counter .btn{margin-top:8px}
       .list,.content-grid{grid-template-columns:1fr}
       .stat{flex-direction:column;align-items:flex-start;gap:6px;font-size:1.05em}
-      .qr-box{max-width:100%;margin-left:auto;margin-right:auto;padding:16px}
-      .nav{gap:8px;padding:12px 18px calc(20px + env(safe-area-inset-bottom))}
-      .nav-btn{font-size:1.05em;padding:12px 6px}
+      .nav{gap:8px;padding:12px 18px calc(24px + env(safe-area-inset-bottom))}
+      .nav-btn{font-size:1.02em;padding:10px 4px}
+      .nav-btn .icon{font-size:1.3rem}
+      .scanner-dialog{padding:18px}
     }
   </style>
 
@@ -122,12 +147,11 @@
           <h3>Escanear y Registrar</h3>
           <p>Deposita plástico en el contenedor correcto y escanea el QR.</p>
           <button class="btn primary" id="btn-open-scanner">Abrir cámara</button>
-          <div id="qr-reader" class="qr-box hidden"></div>
           <div class="counter">
             <label>Cantidad <input id="deposit-count" type="number" min="1" value="1"></label>
             <button class="btn" id="btn-log-manual">Registrar sin QR</button>
           </div>
-          <div id="feedback" class="feedback"></div>
+          <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
         </div>
         <div class="card soft">
           <h3>Mi Progreso</h3>
@@ -197,13 +221,37 @@
       </div>
     </section>
 
+    <div id="scanner-modal" class="scanner-modal hidden" role="dialog" aria-modal="true" aria-labelledby="scanner-title">
+      <div class="scanner-dialog">
+        <header>
+          <h3 id="scanner-title">Escanear código QR</h3>
+          <button class="btn icon-only" id="btn-close-scanner" aria-label="Cerrar escáner">✕</button>
+        </header>
+        <p>Mantén estable tu dispositivo y apunta al QR dentro del marco. Puedes cambiar de cámara si lo necesitas.</p>
+        <div class="scanner-controls">
+          <label for="camera-select">Cámara
+            <select id="camera-select"></select>
+          </label>
+          <button class="btn secondary hidden" type="button" id="btn-toggle-torch">Linterna</button>
+        </div>
+        <div id="qr-reader" class="qr-view">
+          <div class="qr-overlay"></div>
+        </div>
+        <div id="scanner-status" class="scanner-status" role="status" aria-live="polite"></div>
+        <div class="scanner-actions">
+          <button class="btn secondary" type="button" id="btn-stop-scanner">Detener</button>
+          <button class="btn" type="button" id="btn-help-scanner">¿Problemas con la cámara?</button>
+        </div>
+      </div>
+    </div>
+
     <nav class="nav">
-      <button class="nav-btn" data-go="view-home">Inicio</button>
-      <button class="nav-btn" data-go="view-challenges">Retos</button>
-      <button class="nav-btn" data-go="view-ranking">Ranking</button>
-      <button class="nav-btn" data-go="view-rewards">Recompensas</button>
-      <button class="nav-btn" data-go="view-learn">Aprende</button>
-      <button class="nav-btn" data-go="view-admin">Docentes</button>
+      <button class="nav-btn" data-go="view-home"><span class="icon">🏠</span><span class="label">Inicio</span></button>
+      <button class="nav-btn" data-go="view-challenges"><span class="icon">🎯</span><span class="label">Retos</span></button>
+      <button class="nav-btn" data-go="view-ranking"><span class="icon">🏆</span><span class="label">Ranking</span></button>
+      <button class="nav-btn" data-go="view-rewards"><span class="icon">🎁</span><span class="label">Recompensas</span></button>
+      <button class="nav-btn" data-go="view-learn"><span class="icon">💡</span><span class="label">Aprende</span></button>
+      <button class="nav-btn" data-go="view-admin"><span class="icon">🧑‍🏫</span><span class="label">Docentes</span></button>
     </nav>
   </main>
 
@@ -213,13 +261,15 @@
 
     var html5Scanner = null;
     var profile = null;
+    var navButtons = $$('.nav-btn');
 
     function show(id){
       ['view-register','view-home','view-challenges','view-ranking','view-rewards','view-learn','view-admin']
         .forEach(function(v){ document.getElementById(v).classList.toggle('hidden', v !== id); });
+      navButtons.forEach(function(btn){ btn.classList.toggle('active', btn.dataset.go === id); });
     }
 
-    $$('.nav-btn').forEach(function(btn){
+    navButtons.forEach(function(btn){
       btn.addEventListener('click', function(){
         var id = btn.dataset.go;
         if (id === 'view-home' && !profile) return show('view-register');
@@ -300,35 +350,201 @@
       }).getMySummary(profile.studentId);
     }
 
-    $('#btn-open-scanner').addEventListener('click', function(){
-      if (!profile) return show('view-register');
-      var el = document.getElementById('qr-reader');
-      el.classList.remove('hidden');
-      if (html5Scanner) return;
-      html5Scanner = new Html5Qrcode('qr-reader');
-      Html5Qrcode.getCameras().then(function(devices){
-        var camId = devices && devices[0] && devices[0].id;
-        if (!camId) throw new Error('No hay cámara disponible');
-        html5Scanner.start(
-          camId,
-          { fps: 10, qrbox: {width: 250, height: 250} },
-          onScanSuccess,
-          function(){}
-        ).catch(function(e){
-          feedback('No se pudo iniciar la cámara. Usa "Registrar sin QR".', true);
+    var scannerModal = $('#scanner-modal');
+    var cameraSelect = $('#camera-select');
+    var scannerStatusEl = $('#scanner-status');
+    var torchBtn = $('#btn-toggle-torch');
+    var stopScannerBtn = $('#btn-stop-scanner');
+    var closeScannerBtn = $('#btn-close-scanner');
+    var helpScannerBtn = $('#btn-help-scanner');
+    var availableCameras = [];
+    var currentCameraId = null;
+    var torchSupported = false;
+    var torchEnabled = false;
+    var isScannerActive = false;
+    var rankingTabsInitialized = false;
+
+    function setScannerStatus(msg, isError){
+      if (!scannerStatusEl) return;
+      scannerStatusEl.textContent = msg || '';
+      scannerStatusEl.style.color = isError ? '#b3261e' : 'var(--muted)';
+    }
+
+    function ensureScannerInstance(){
+      if (html5Scanner) return Promise.resolve(html5Scanner);
+      var opts = window.Html5QrcodeSupportedFormats ? { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] } : {};
+      html5Scanner = new Html5Qrcode('qr-reader', opts);
+      return Promise.resolve(html5Scanner);
+    }
+
+    function stopScanner(){
+      if (!html5Scanner) return Promise.resolve();
+      var toStop = html5Scanner.stop ? html5Scanner.stop() : Promise.resolve();
+      return Promise.resolve(toStop)
+        .catch(function(){})
+        .then(function(){ if (html5Scanner && html5Scanner.clear) { return Promise.resolve(html5Scanner.clear()).catch(function(){}); } })
+        .finally(function(){
+          html5Scanner = null;
+          torchSupported = false;
+          torchEnabled = false;
+          isScannerActive = false;
+          updateTorchButton();
         });
-      }).catch(function(e){
-        feedback('No se pudo iniciar la cámara. Usa "Registrar sin QR".', true);
-      });
-    });
-    function onScanSuccess(decodedText){
-      var count = Number($('#deposit-count').value || 1);
-      registerDeposit(decodedText, count);
-      html5Scanner.stop().then(function(){
-        document.getElementById('qr-reader').classList.add('hidden');
-        html5Scanner = null;
+    }
+
+    function formatCameraLabel(device, index){
+      var label = device.label || ('Cámara ' + (index + 1));
+      var lowered = (device.label || '').toLowerCase();
+      if (lowered.indexOf('back') !== -1 || lowered.indexOf('rear') !== -1 || lowered.indexOf('environment') !== -1) label += ' (trasera)';
+      else if (lowered.indexOf('front') !== -1 || lowered.indexOf('user') !== -1) label += ' (frontal)';
+      return label;
+    }
+
+    function listCameras(){
+      if (!cameraSelect) return Promise.reject(new Error('No se encontró el selector de cámara.'));
+      return Html5Qrcode.getCameras().then(function(devices){
+        availableCameras = devices || [];
+        if (!availableCameras.length) throw new Error('No se detectaron cámaras disponibles.');
+        cameraSelect.innerHTML = availableCameras.map(function(dev, i){
+          return '<option value="' + dev.id + '">' + formatCameraLabel(dev, i) + '</option>';
+        }).join('');
+        var preferred = availableCameras.find(function(dev){
+          var label = (dev.label || '').toLowerCase();
+          return label.indexOf('back') !== -1 || label.indexOf('rear') !== -1 || label.indexOf('environment') !== -1;
+        }) || availableCameras[0];
+        currentCameraId = preferred.id;
+        cameraSelect.value = currentCameraId;
+        cameraSelect.disabled = availableCameras.length === 1;
       });
     }
+
+    function updateTorchButton(){
+      if (!torchBtn) return;
+      torchBtn.disabled = !torchSupported;
+      torchBtn.classList.toggle('hidden', !torchSupported);
+      torchBtn.textContent = torchEnabled ? 'Apagar linterna' : 'Linterna';
+    }
+
+    function updateTorchAvailability(){
+      if (!html5Scanner || typeof html5Scanner.getRunningTrackCapabilities !== 'function') {
+        torchSupported = false;
+        updateTorchButton();
+        return;
+      }
+      html5Scanner.getRunningTrackCapabilities()
+        .then(function(cap){
+          torchSupported = !!(cap && cap.torch);
+          if (!torchSupported) torchEnabled = false;
+          updateTorchButton();
+        })
+        .catch(function(){
+          torchSupported = false;
+          torchEnabled = false;
+          updateTorchButton();
+        });
+    }
+
+    function toggleTorch(){
+      if (!torchSupported || !html5Scanner) return;
+      var action = null;
+      if (!torchEnabled && typeof html5Scanner.turnOnTorch === 'function') action = html5Scanner.turnOnTorch();
+      else if (torchEnabled && typeof html5Scanner.turnOffTorch === 'function') action = html5Scanner.turnOffTorch();
+      else if (typeof html5Scanner.applyVideoConstraints === 'function') action = html5Scanner.applyVideoConstraints({ advanced: [{ torch: !torchEnabled }] });
+      if (!action) return;
+      Promise.resolve(action)
+        .then(function(){
+          torchEnabled = !torchEnabled;
+          updateTorchButton();
+        })
+        .catch(function(){ setScannerStatus('No pudimos controlar la linterna en este dispositivo.', true); });
+    }
+
+    function computeQrBox(viewWidth, viewHeight){
+      var minEdge = Math.min(viewWidth, viewHeight);
+      var size = Math.round(minEdge * 0.7);
+      return { width: size, height: size };
+    }
+
+    function startScanner(cameraId){
+      return stopScanner().then(function(){
+        return ensureScannerInstance().then(function(scanner){
+          var config = {
+            fps: 12,
+            qrbox: function(w, h){ return computeQrBox(w, h); },
+            aspectRatio: 1.0,
+            disableFlip: true,
+            experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+          };
+          setScannerStatus('Abriendo cámara...', false);
+          return scanner.start(
+            cameraId,
+            config,
+            onScanSuccess,
+            function(){ if (!isScannerActive) setScannerStatus('Escaneando...', false); }
+          ).then(function(){
+            currentCameraId = cameraId;
+            isScannerActive = true;
+            setScannerStatus('Escaneando... Apunta al QR dentro del marco.', false);
+            updateTorchAvailability();
+          }).catch(function(err){
+            setScannerStatus('No se pudo iniciar la cámara. Usa "Registrar sin QR".', true);
+            feedback('No se pudo iniciar la cámara. Usa "Registrar sin QR".', true);
+            throw err;
+          });
+        });
+      });
+    }
+
+    function openScannerModal(){
+      if (!profile) return show('view-register');
+      document.body.classList.add('modal-open');
+      if (scannerModal) scannerModal.classList.remove('hidden');
+      setScannerStatus('Preparando cámara...', false);
+      torchSupported = false;
+      torchEnabled = false;
+      updateTorchButton();
+      listCameras()
+        .then(function(){ return startScanner(currentCameraId); })
+        .catch(function(err){
+          setScannerStatus(err && err.message ? err.message : 'No se detectaron cámaras.', true);
+          feedback('No se pudo iniciar la cámara. Usa "Registrar sin QR".', true);
+        });
+    }
+
+    function closeScannerModal(){
+      document.body.classList.remove('modal-open');
+      if (scannerModal) scannerModal.classList.add('hidden');
+      setScannerStatus('');
+      stopScanner();
+    }
+
+    function switchCamera(cameraId){
+      if (!cameraId || cameraId === currentCameraId) return;
+      setScannerStatus('Cambiando de cámara...', false);
+      startScanner(cameraId).catch(function(){ setScannerStatus('No se pudo cambiar de cámara. Intenta con otra opción.', true); });
+    }
+
+    function onScanSuccess(decodedText){
+      if (!isScannerActive) return;
+      isScannerActive = false;
+      var count = Number($('#deposit-count').value || 1);
+      registerDeposit(decodedText, count);
+      closeScannerModal();
+    }
+
+    $('#btn-open-scanner').addEventListener('click', openScannerModal);
+    if (torchBtn) torchBtn.addEventListener('click', toggleTorch);
+    if (stopScannerBtn) stopScannerBtn.addEventListener('click', closeScannerModal);
+    if (closeScannerBtn) closeScannerBtn.addEventListener('click', closeScannerModal);
+    if (helpScannerBtn) helpScannerBtn.addEventListener('click', function(){
+      alert('Consejos: 1) Revisa permisos de cámara del navegador. 2) Cambia de cámara desde el selector si ves la imagen en negro. 3) Mantén el QR dentro del marco y evita reflejos.');
+    });
+    if (scannerModal) {
+      scannerModal.addEventListener('click', function(ev){ if (ev.target === scannerModal) closeScannerModal(); });
+    }
+    document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape' && scannerModal && !scannerModal.classList.contains('hidden')) closeScannerModal(); });
+    if (cameraSelect) cameraSelect.addEventListener('change', function(){ switchCamera(cameraSelect.value); });
+
     $('#btn-log-manual').addEventListener('click', function(){
       var count = Number($('#deposit-count').value || 1);
       var fakeQR = 'RCP|PLASTICO|MANUAL|ESCUELA-001';
@@ -339,7 +555,7 @@
       var box = $('#feedback');
       box.textContent = msg;
       box.style.color = isError ? '#b3261e' : '#0b6b3a';
-      if (!isError) { box.textContent += ' !'; }
+      box.classList.toggle('toast-success', !isError && !!msg);
     }
 
     function registerDeposit(qrText, count){
@@ -381,16 +597,19 @@
       google.script.run.withSuccessHandler(function(list){ renderRank('#rank-class', list, 'Clase'); }).getLeaderboard('class');
       google.script.run.withSuccessHandler(function(list){ renderRank('#rank-group', list, 'Grupo'); }).getLeaderboard('group');
 
-      $$('.tab').forEach(function(t){
-        t.addEventListener('click', function(){
-          $$('.tab').forEach(function(x){ x.classList.remove('active'); });
-          t.classList.add('active');
-          $('#rank-student').classList.add('hidden');
-          $('#rank-class').classList.add('hidden');
-          $('#rank-group').classList.add('hidden');
-          document.getElementById('rank-'+t.dataset.tab).classList.remove('hidden');
+      if (!rankingTabsInitialized) {
+        $$('.tab').forEach(function(t){
+          t.addEventListener('click', function(){
+            $$('.tab').forEach(function(x){ x.classList.remove('active'); });
+            t.classList.add('active');
+            $('#rank-student').classList.add('hidden');
+            $('#rank-class').classList.add('hidden');
+            $('#rank-group').classList.add('hidden');
+            document.getElementById('rank-'+t.dataset.tab).classList.remove('hidden');
+          });
         });
-      });
+        rankingTabsInitialized = true;
+      }
     }
     function renderRank(sel, list, label){
       var el = document.querySelector(sel);
@@ -509,7 +728,7 @@
       var s = <?!= JSON.stringify(initial.settings) ?>;
       document.getElementById('schoolName').textContent = s.SCHOOL_NAME || 'Recicla App';
       document.documentElement.style.setProperty('--primary', s.PRIMARY_COLOR || '#eb1946');
-      document.documentElement.style.setProperty('--secondary', s.SECONDARY_COLOR || '#00293f');
+      document.documentElement.style.setProperty('--secondary', s.SECONDARY_COLOR || '#01263b');
     })();
 
     window.addEventListener('load', function(){
