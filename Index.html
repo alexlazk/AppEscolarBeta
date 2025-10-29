@@ -7,40 +7,43 @@
 
   <style>
     :root{
-      --primary:#0DB65C; --secondary:#005B41; --bg:#F6FFF9; --text:#1a1a1a; --muted:#5f6b63;
-      --card:#fff; --soft:#f2fbf6; --radius:14px; --shadow:0 8px 30px rgba(0,0,0,.06);
+      --primary:#eb1946; --secondary:#00293f; --bg:#f4f7fb; --text:#17212b; --muted:#526170;
+      --card:#ffffff; --soft:#fdf0f3; --radius:14px; --shadow:0 8px 30px rgba(0,0,0,.06);
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;line-height:1.45;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased;font-size:clamp(15px,1.6vw,18px)}
-    .app-header{display:flex;gap:12px;align-items:center;padding:12px 16px;background:var(--card);box-shadow:var(--shadow);position:sticky;top:0;z-index:20}
-    .logo{font-size:28px}.title h1{font-size:18px;margin:0}.title small{color:var(--muted)}
+    .app-header{display:flex;gap:12px;align-items:center;padding:12px 16px;background:var(--primary);box-shadow:var(--shadow);position:sticky;top:0;z-index:20;color:#fff}
+    .logo{display:flex;align-items:center}
+    .logo img{height:48px;width:auto}
+    .title h1{font-size:18px;margin:0;color:#fff}
+    .title small{color:rgba(255,255,255,.78)}
     .container{padding:16px 16px calc(96px + env(safe-area-inset-bottom));max-width:980px;margin:0 auto}
     .card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:16px}.card.soft{background:var(--soft)}
     .card h2{margin-top:0;font-size:1.4em}
     .card h3{margin-top:0;font-size:1.2em}
-    .hidden{display:none}.btn{appearance:none;border:none;border-radius:12px;padding:12px 16px;background:#e6f4ec;cursor:pointer;font-weight:600}
-    .btn.primary{background:var(--primary);color:#fff}.btn:active{transform:translateY(1px)}
+    .hidden{display:none}.btn{appearance:none;border:none;border-radius:12px;padding:12px 16px;background:#ffe1e9;color:var(--primary);cursor:pointer;font-weight:600;transition:transform .2s,box-shadow .2s}
+    .btn.primary{background:var(--primary);color:#fff}.btn:hover{box-shadow:0 6px 18px rgba(235,25,70,.25)}.btn:active{transform:translateY(1px)}
     .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:10px 0 16px}
     .form-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:12px}
     label{font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
-    input{padding:12px;border:1px solid #d0ded6;border-radius:10px;outline:0;font-size:1rem} input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(13,182,92,.15)}
+    input{padding:12px;border:1px solid #cad4dd;border-radius:10px;outline:0;font-size:1rem} input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(235,25,70,.18)}
     .grid-2{display:grid;grid-template-columns:1fr;gap:16px}@media(min-width:840px){.grid-2{grid-template-columns:1fr 1fr}}
     .muted{color:var(--muted)} .feedback{margin-top:8px;min-height:24px;font-weight:600}
-    .qr-box{width:100%;max-width:420px;margin-top:8px;border:2px dashed #cfe8db;border-radius:12px;padding:6px}
-    .stat{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#fff;border-radius:10px;margin-bottom:8px}
-    .progress{background:#e8f5ee;border-radius:999px;height:12px;overflow:hidden}.progress>div{height:100%;width:0;background:var(--secondary);transition:width .4s}
-    .tabs{display:flex;gap:6px;margin-bottom:12px}.tab{padding:8px 12px;background:#ecf6f0;border-radius:10px;cursor:pointer}.tab.active{background:var(--primary);color:#fff}
+    .qr-box{width:100%;max-width:420px;margin-top:8px;border:2px dashed rgba(235,25,70,.35);border-radius:12px;padding:6px;background:#fff}
+    .stat{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#f7f9fc;border-radius:10px;margin-bottom:8px}
+    .progress{background:#e4ebf2;border-radius:999px;height:12px;overflow:hidden}.progress>div{height:100%;width:0;background:var(--primary);transition:width .4s}
+    .tabs{display:flex;gap:6px;margin-bottom:12px}.tab{padding:8px 12px;background:#e4ebf2;border-radius:10px;cursor:pointer;color:var(--secondary)}.tab.active{background:var(--primary);color:#fff}
     .list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
     .card-item{background:#fff;border-radius:12px;padding:12px;box-shadow:var(--shadow)} .card-item h4{margin:4px 0 6px} .card-item small{color:var(--muted)}
     .content-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px} .content{background:#fff;border-radius:12px;padding:12px;box-shadow:var(--shadow)}
-    .nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.94);display:flex;justify-content:space-around;gap:8px;padding:8px 16px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -6px 22px rgba(0,0,0,.08);backdrop-filter:blur(8px);z-index:30}
-    .nav-btn{flex:1;background:transparent;border:none;padding:10px 6px;font-size:1rem;border-radius:12px;color:var(--muted)}
-    .nav-btn:focus-visible{outline:2px solid var(--primary)}
+    .nav{position:fixed;bottom:0;left:0;right:0;background:rgba(235,25,70,.94);display:flex;justify-content:space-around;gap:8px;padding:8px 16px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -6px 22px rgba(0,0,0,.18);backdrop-filter:blur(8px);z-index:30}
+    .nav-btn{flex:1;background:transparent;border:none;padding:10px 6px;font-size:1rem;border-radius:12px;color:rgba(255,255,255,.78)}
+    .nav-btn.active,.nav-btn:focus-visible{background:rgba(255,255,255,.12);color:#fff;outline:2px solid transparent}
     .counter{display:flex;gap:10px;align-items:center;margin-top:8px} .challenge{margin-top:10px}
     @media(max-width:720px){
       body{font-size:clamp(16px,4.4vw,20px)}
       .app-header{padding:12px 16px;gap:12px}
-      .logo{font-size:28px}
+      .logo img{height:42px}
       .title h1{font-size:1.2em}
       .title small{font-size:.85em}
       .container{padding:18px 14px calc(110px + env(safe-area-inset-bottom))}
@@ -68,7 +71,7 @@
 </head>
 <body>
   <header class="app-header">
-    <div class="logo">♻️</div>
+    <div class="logo"><img src="https://tepeyacxcaret.mx/wp-content/uploads/2024/11/cropped-logo-nuevo-it-xcaret-blanco-01.png" alt="Instituto Tepeyac Xcaret"></div>
     <div class="title">
       <h1 id="schoolName"></h1>
       <small>Proyecto de Reciclaje – 5º</small>
