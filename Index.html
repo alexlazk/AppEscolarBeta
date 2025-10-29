@@ -143,6 +143,11 @@
       </div>
     </section>
 
+    <section id="view-challenges" class="card hidden">
+      <h2>Retos</h2>
+      <div id="challenge-info" class="card soft"></div>
+    </section>
+
     <section id="view-ranking" class="card hidden">
       <h2>Rankings</h2>
       <div class="tabs">
@@ -194,6 +199,7 @@
 
     <nav class="nav">
       <button class="nav-btn" data-go="view-home">Inicio</button>
+      <button class="nav-btn" data-go="view-challenges">Retos</button>
       <button class="nav-btn" data-go="view-ranking">Ranking</button>
       <button class="nav-btn" data-go="view-rewards">Recompensas</button>
       <button class="nav-btn" data-go="view-learn">Aprende</button>
@@ -209,7 +215,7 @@
     var profile = null;
 
     function show(id){
-      ['view-register','view-home','view-ranking','view-rewards','view-learn','view-admin']
+      ['view-register','view-home','view-challenges','view-ranking','view-rewards','view-learn','view-admin']
         .forEach(function(v){ document.getElementById(v).classList.toggle('hidden', v !== id); });
     }
 
@@ -218,6 +224,7 @@
         var id = btn.dataset.go;
         if (id === 'view-home' && !profile) return show('view-register');
         show(id);
+        if (id === 'view-challenges') loadChallenges();
         if (id === 'view-ranking') loadRanking();
         if (id === 'view-rewards') loadRewards();
         if (id === 'view-learn') loadContent();
@@ -348,6 +355,25 @@
           feedback('Error: ' + msg, true);
         })
         .logRecycling({ qrText: qrText, studentId: profile.studentId, count: count });
+    }
+
+    function loadChallenges(){
+      var box = document.getElementById('challenge-info');
+      box.innerHTML = '<p class="muted">Cargando...</p>';
+      google.script.run.withSuccessHandler(function(res){
+        if (!res || !res.ok) {
+          box.innerHTML = '<p class="muted">No hay retos activos por ahora.</p>';
+          return;
+        }
+        var ch = res.challenge;
+        var status = '' +
+          '<h3>' + ch.title + '</h3>' +
+          '<p><strong>Objetivo:</strong> ' + ch.goal + ' depósitos entre el ' + ch.start + ' y el ' + ch.end + '.</p>' +
+          '<p><strong>Bono:</strong> +' + ch.bonus + ' pts por completar el reto.</p>' +
+          (ch.description ? '<p>' + ch.description + '</p>' : '') +
+          '<small class="muted">Última actualización: ' + ch.updatedAt + '</small>';
+        box.innerHTML = status;
+      }).getActiveChallenge();
     }
 
     function loadRanking(){

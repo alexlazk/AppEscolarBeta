@@ -125,6 +125,25 @@ function getActiveChallenge_(){
     if(String(ch.Status).toUpperCase()==='ACTIVE' && String(ch.StartDate)<=today && today<=String(ch.EndDate)) return ch; }
   return null;
 }
+
+function getActiveChallenge(){
+  var ch=getActiveChallenge_();
+  if(!ch) return {ok:false};
+  var tz=Session.getScriptTimeZone();
+  return {
+    ok:true,
+    challenge:{
+      id:ch.ChallengeID||'',
+      title:ch.Title||'Reto semanal',
+      goal:Number(ch.Goal||getSetting_('WEEKLY_GOAL_DEPOSITS',5)),
+      start:ch.StartDate,
+      end:ch.EndDate,
+      bonus:Number(ch.BonusPoints||getSetting_('WEEKLY_BONUS_POINTS',20)),
+      description:ch.Description||'',
+      updatedAt:Utilities.formatDate(new Date(),tz,'yyyy-MM-dd HH:mm')
+    }
+  };
+}
 function getStudentWeeklyDeposits_(studentId,startDate,endDate){
   var sh=getSheet_(SHEETS.LOG); if(sh.getLastRow()<2) return 0;
   var headers=sh.getRange(1,1,1,11).getValues()[0]; var data=sh.getRange(2,1,sh.getLastRow()-1,11).getValues();
