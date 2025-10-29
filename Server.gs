@@ -35,11 +35,94 @@ function getSheet_(name) {
   if (!sh) sh = ss.insertSheet(name);
   return sh;
 }
+function looksLikeSettingKey_(value) {
+  var key = collapseWhitespace_(value);
+  if (!key) return false;
+  if (key.indexOf('//') === 0 || key.indexOf('#') === 0) return false;
+  return /^[A-Z0-9_]+$/.test(key);
+}
+
+function isSettingsHeaderLabel_(value) {
+  var label = collapseWhitespace_(value).toLowerCase();
+  if (!label) return false;
+  var headerLabels = ['key','keys','clave','claves','config','configuracion','configuration','setting','settings','parametro','parameter','nombre','value','values','valor','valores','dato','datos','data','contenido'];
+  return headerLabels.indexOf(label) !== -1;
+}
+
+function isSettingsHeaderRow_(row, index, treatFirstRowAsHeader) {
+  if (!row) return false;
+  if (index === 0) {
+    if (treatFirstRowAsHeader) return true;
+    var first = collapseWhitespace_(row[0]).toLowerCase();
+    var second = collapseWhitespace_(row[1]).toLowerCase();
+    if (!first && !second) return false;
+    if (isSettingsHeaderLabel_(first) || isSettingsHeaderLabel_(second)) return true;
+  }
+  return false;
+}
+
 function getSettings_() {
   var sh = getSheet_(SHEETS.SETTINGS);
-  var rows = sh.getDataRange().getValues();
-  var obj = {}; var i;
-  for (i=1;i<rows.length;i++){ var k=rows[i][0], v=rows[i][1]; if(k) obj[String(k).trim()]=v; }
+  var lastRow = sh.getLastRow();
+  if (lastRow === 0) return {};
+
+  var lastCol = sh.getLastColumn();
+  if (lastCol === 0) return {};
+
+  var rows = sh.getRange(1, 1, lastRow, lastCol).getDisplayValues();
+  var obj = {};
+  var i, j;
+
+  var firstRow = rows[0] || [];
+  var firstRowKeyCount = 0;
+  for (j = 0; j < firstRow.length; j++) {
+    if (looksLikeSettingKey_(firstRow[j])) firstRowKeyCount++;
+  }
+
+  var secondRow = rows.length > 1 ? rows[1] : null;
+  var secondRowHasKey = secondRow ? looksLikeSettingKey_(secondRow[0]) : false;
+  var hasHorizontalHeader = rows.length > 1 && firstRowKeyCount >= 2 && !secondRowHasKey;
+
+  for (i = 0; i < rows.length; i++) {
+    if (isSettingsHeaderRow_(rows[i], i, hasHorizontalHeader)) continue;
+    if (hasHorizontalHeader && i === 1) continue;
+
+    var key = collapseWhitespace_(rows[i][0]);
+    if (!key || key.indexOf('//') === 0 || key.indexOf('#') === 0) continue;
+
+    var values = [];
+    for (j = 1; j < rows[i].length; j++) {
+      var raw = rows[i][j];
+      if (!raw && raw !== 0) continue;
+
+      var normalized = String(raw).replace(/\r\n?/g, '\n').trim();
+      if (normalized) values.push(normalized);
+    }
+
+    if (!obj.hasOwnProperty(key)) {
+      obj[key] = values.length ? values.join('\n') : '';
+    }
+  }
+
+  if (hasHorizontalHeader) {
+    for (j = 0; j < firstRow.length; j++) {
+      var headerKey = collapseWhitespace_(firstRow[j]);
+      if (!headerKey || headerKey.indexOf('//') === 0 || headerKey.indexOf('#') === 0 || isSettingsHeaderLabel_(headerKey)) continue;
+
+      var parts = [];
+      for (i = 1; i < rows.length; i++) {
+        var cell = rows[i][j];
+        if (!cell && cell !== 0) continue;
+        var value = String(cell).replace(/\r\n?/g, '\n').trim();
+        if (value) parts.push(value);
+      }
+      if (!parts.length) continue;
+
+      if (!obj.hasOwnProperty(headerKey) || !obj[headerKey]) {
+        obj[headerKey] = parts.join('\n');
+      }
+    }
+  }
   return obj;
 }
 function getSetting_(key, fallback){ if(typeof fallback==='undefined') fallback='';
@@ -63,7 +146,8 @@ function collapseWhitespace_(value){
 function splitConfigList_(raw){
   if (!raw && raw !== 0) return [];
   return String(raw)
-    .split(/[;\n,]/)
+    .replace(/\r\n?/g, '\n')
+    .split(/[;,\n|]+/)
     .map(function(part){ return collapseWhitespace_(part); })
     .filter(function(part){ return part.length > 0; });
 }
@@ -171,50 +255,13 @@ function logRecycling(payload){
   return {ok:true, pointsAwarded:points, challengeId:challengeId};
 }
 
-function normalizeDate_(value){
-  var tz=Session.getScriptTimeZone();
-  if(value instanceof Date) return Utilities.formatDate(value,tz,'yyyy-MM-dd');
-  var str=String(value||'').trim();
-  if(!str) return '';
-  if(/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
-  var parsed=new Date(str);
-  if(!isNaN(parsed.getTime())) return Utilities.formatDate(parsed,tz,'yyyy-MM-dd');
-  return str;
-}
-
 function getActiveChallenge_(){
   var sh=getSheet_(SHEETS.CHALLENGES); if(sh.getLastRow()<2) return null;
   var headers=sh.getRange(1,1,1,8).getValues()[0]; var data=sh.getRange(2,1,sh.getLastRow()-1,8).getValues();
-  var today=Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'yyyy-MM-dd'); var i, active=null;
-  for(i=0;i<data.length;i++){
-    var ch=toObj_(headers,data[i]);
-    var status=String(ch.Status||'').toUpperCase();
-    if(status!=='ACTIVE') continue;
-    ch.StartDate=normalizeDate_(ch.StartDate);
-    ch.EndDate=normalizeDate_(ch.EndDate);
-    if(ch.StartDate && ch.EndDate && ch.StartDate<=today && today<=ch.EndDate) return ch;
-    if(!active) active=ch;
-  }
-  return active;
-}
-
-function getActiveChallenge(){
-  var ch=getActiveChallenge_();
-  if(!ch) return {ok:false};
-  var tz=Session.getScriptTimeZone();
-  return {
-    ok:true,
-    challenge:{
-      id:ch.ChallengeID||'',
-      title:ch.Title||'Reto semanal',
-      goal:Number(ch.Goal||getSetting_('WEEKLY_GOAL_DEPOSITS',5)),
-      start:ch.StartDate,
-      end:ch.EndDate,
-      bonus:Number(ch.BonusPoints||getSetting_('WEEKLY_BONUS_POINTS',20)),
-      description:ch.Description||'',
-      updatedAt:Utilities.formatDate(new Date(),tz,'yyyy-MM-dd HH:mm')
-    }
-  };
+  var today=Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'yyyy-MM-dd'); var i;
+  for(i=0;i<data.length;i++){ var ch=toObj_(headers,data[i]);
+    if(String(ch.Status).toUpperCase()==='ACTIVE' && String(ch.StartDate)<=today && today<=String(ch.EndDate)) return ch; }
+  return null;
 }
 function getStudentWeeklyDeposits_(studentId,startDate,endDate){
   var sh=getSheet_(SHEETS.LOG); if(sh.getLastRow()<2) return 0;
