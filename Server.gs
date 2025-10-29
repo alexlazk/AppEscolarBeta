@@ -35,6 +35,20 @@ function getSheet_(name) {
   if (!sh) sh = ss.insertSheet(name);
   return sh;
 }
+function isSettingsHeaderRow_(row, index) {
+  if (!row || index !== 0) return false;
+  var first = collapseWhitespace_(row[0]).toLowerCase();
+  var second = collapseWhitespace_(row[1]).toLowerCase();
+  if (!first && !second) return false;
+
+  var headerFirst = ['key', 'keys', 'clave', 'claves', 'config', 'configuracion', 'configuration', 'setting', 'settings', 'parametro', 'parameter', 'nombre'];
+  var headerSecond = ['value', 'values', 'valor', 'valores', 'dato', 'datos', 'data', 'contenido'];
+
+  if (headerFirst.indexOf(first) !== -1) return true;
+  if (headerSecond.indexOf(second) !== -1) return true;
+  return false;
+}
+
 function getSettings_() {
   var sh = getSheet_(SHEETS.SETTINGS);
   var lastRow = sh.getLastRow();
@@ -46,20 +60,22 @@ function getSettings_() {
   var rows = sh.getRange(1, 1, lastRow, lastCol).getDisplayValues();
   var obj = {};
   var i, j;
-  for (i = 1; i < rows.length; i++) {
-    var key = rows[i][0];
-    if (!key) continue;
+  for (i = 0; i < rows.length; i++) {
+    if (isSettingsHeaderRow_(rows[i], i)) continue;
+
+    var key = collapseWhitespace_(rows[i][0]);
+    if (!key || key.indexOf('//') === 0 || key.indexOf('#') === 0) continue;
 
     var values = [];
     for (j = 1; j < rows[i].length; j++) {
       var raw = rows[i][j];
-      if (!raw) continue;
+      if (!raw && raw !== 0) continue;
 
       var normalized = String(raw).replace(/\r\n?/g, '\n').trim();
       if (normalized) values.push(normalized);
     }
 
-    obj[String(key).trim()] = values.length ? values.join('\n') : '';
+    obj[key] = values.length ? values.join('\n') : '';
   }
   return obj;
 }
