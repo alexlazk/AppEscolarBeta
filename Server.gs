@@ -35,17 +35,29 @@ function getSheet_(name) {
   if (!sh) sh = ss.insertSheet(name);
   return sh;
 }
-function isSettingsHeaderRow_(row, index) {
-  if (!row || index !== 0) return false;
-  var first = collapseWhitespace_(row[0]).toLowerCase();
-  var second = collapseWhitespace_(row[1]).toLowerCase();
-  if (!first && !second) return false;
+function looksLikeSettingKey_(value) {
+  var key = collapseWhitespace_(value);
+  if (!key) return false;
+  if (key.indexOf('//') === 0 || key.indexOf('#') === 0) return false;
+  return /^[A-Z0-9_]+$/.test(key);
+}
 
-  var headerFirst = ['key', 'keys', 'clave', 'claves', 'config', 'configuracion', 'configuration', 'setting', 'settings', 'parametro', 'parameter', 'nombre'];
-  var headerSecond = ['value', 'values', 'valor', 'valores', 'dato', 'datos', 'data', 'contenido'];
+function isSettingsHeaderLabel_(value) {
+  var label = collapseWhitespace_(value).toLowerCase();
+  if (!label) return false;
+  var headerLabels = ['key','keys','clave','claves','config','configuracion','configuration','setting','settings','parametro','parameter','nombre','value','values','valor','valores','dato','datos','data','contenido'];
+  return headerLabels.indexOf(label) !== -1;
+}
 
-  if (headerFirst.indexOf(first) !== -1) return true;
-  if (headerSecond.indexOf(second) !== -1) return true;
+function isSettingsHeaderRow_(row, index, treatFirstRowAsHeader) {
+  if (!row) return false;
+  if (index === 0) {
+    if (treatFirstRowAsHeader) return true;
+    var first = collapseWhitespace_(row[0]).toLowerCase();
+    var second = collapseWhitespace_(row[1]).toLowerCase();
+    if (!first && !second) return false;
+    if (isSettingsHeaderLabel_(first) || isSettingsHeaderLabel_(second)) return true;
+  }
   return false;
 }
 
@@ -60,8 +72,20 @@ function getSettings_() {
   var rows = sh.getRange(1, 1, lastRow, lastCol).getDisplayValues();
   var obj = {};
   var i, j;
+
+  var firstRow = rows[0] || [];
+  var firstRowKeyCount = 0;
+  for (j = 0; j < firstRow.length; j++) {
+    if (looksLikeSettingKey_(firstRow[j])) firstRowKeyCount++;
+  }
+
+  var secondRow = rows.length > 1 ? rows[1] : null;
+  var secondRowHasKey = secondRow ? looksLikeSettingKey_(secondRow[0]) : false;
+  var hasHorizontalHeader = rows.length > 1 && firstRowKeyCount >= 2 && !secondRowHasKey;
+
   for (i = 0; i < rows.length; i++) {
-    if (isSettingsHeaderRow_(rows[i], i)) continue;
+    if (isSettingsHeaderRow_(rows[i], i, hasHorizontalHeader)) continue;
+    if (hasHorizontalHeader && i === 1) continue;
 
     var key = collapseWhitespace_(rows[i][0]);
     if (!key || key.indexOf('//') === 0 || key.indexOf('#') === 0) continue;
@@ -75,7 +99,29 @@ function getSettings_() {
       if (normalized) values.push(normalized);
     }
 
-    obj[key] = values.length ? values.join('\n') : '';
+    if (!obj.hasOwnProperty(key)) {
+      obj[key] = values.length ? values.join('\n') : '';
+    }
+  }
+
+  if (hasHorizontalHeader) {
+    for (j = 0; j < firstRow.length; j++) {
+      var headerKey = collapseWhitespace_(firstRow[j]);
+      if (!headerKey || headerKey.indexOf('//') === 0 || headerKey.indexOf('#') === 0 || isSettingsHeaderLabel_(headerKey)) continue;
+
+      var parts = [];
+      for (i = 1; i < rows.length; i++) {
+        var cell = rows[i][j];
+        if (!cell && cell !== 0) continue;
+        var value = String(cell).replace(/\r\n?/g, '\n').trim();
+        if (value) parts.push(value);
+      }
+      if (!parts.length) continue;
+
+      if (!obj.hasOwnProperty(headerKey) || !obj[headerKey]) {
+        obj[headerKey] = parts.join('\n');
+      }
+    }
   }
   return obj;
 }
@@ -101,7 +147,7 @@ function splitConfigList_(raw){
   if (!raw && raw !== 0) return [];
   return String(raw)
     .replace(/\r\n?/g, '\n')
-    .split(/[;,\n]+/)
+    .split(/[;,\n|]+/)
     .map(function(part){ return collapseWhitespace_(part); })
     .filter(function(part){ return part.length > 0; });
 }
