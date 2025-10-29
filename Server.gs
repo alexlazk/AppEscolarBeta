@@ -143,6 +143,57 @@ function collapseWhitespace_(value){
   return String(value || '').replace(/\s+/g, ' ').trim();
 }
 
+function normalizeSheetDate_(value){
+  var tz = Session.getScriptTimeZone();
+  var date = null;
+
+  if (value instanceof Date) {
+    date = value;
+  } else {
+    var str = collapseWhitespace_(value);
+    if (!str) return '';
+
+    var parsed = Date.parse(str);
+    if (!isNaN(parsed)) {
+      date = new Date(parsed);
+    } else {
+      var match = str.match(/^(\d{1,4})[-\/.](\d{1,2})[-\/.](\d{1,4})$/);
+      if (match) {
+        var part1 = parseInt(match[1], 10);
+        var part2 = parseInt(match[2], 10);
+        var part3 = parseInt(match[3], 10);
+        var year, month, day;
+
+        if (match[1].length === 4) {
+          year = part1;
+          month = part2;
+          day = part3;
+        } else if (match[3].length === 4) {
+          year = part3;
+          if (part1 > 12 && part2 <= 12) {
+            day = part1;
+            month = part2;
+          } else if (part2 > 12 && part1 <= 12) {
+            day = part2;
+            month = part1;
+          } else {
+            day = part2;
+            month = part1;
+          }
+        } else {
+          year = part3 < 100 ? 2000 + part3 : part3;
+          month = part1;
+          day = part2;
+        }
+        date = new Date(year, month - 1, day);
+      }
+    }
+  }
+
+  if (!date || isNaN(date.getTime())) return '';
+  return Utilities.formatDate(date, tz, 'yyyy-MM-dd');
+}
+
 function splitConfigList_(raw){
   if (!raw && raw !== 0) return [];
   return String(raw)
@@ -278,7 +329,12 @@ function getActiveChallenge_(){
   var headers=sh.getRange(1,1,1,8).getValues()[0]; var data=sh.getRange(2,1,sh.getLastRow()-1,8).getValues();
   var today=Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'yyyy-MM-dd'); var i;
   for(i=0;i<data.length;i++){ var ch=toObj_(headers,data[i]);
-    if(String(ch.Status).toUpperCase()==='ACTIVE' && String(ch.StartDate)<=today && today<=String(ch.EndDate)) return ch; }
+    if(String(ch.Status).toUpperCase()!=='ACTIVE') continue;
+    var start=normalizeSheetDate_(ch.StartDate);
+    var end=normalizeSheetDate_(ch.EndDate);
+    if(!start || !end) continue;
+    if(start<=today && today<=end){ ch.StartDate=start; ch.EndDate=end; return ch; }
+  }
   return null;
 }
 function getStudentWeeklyDeposits_(studentId,startDate,endDate){
