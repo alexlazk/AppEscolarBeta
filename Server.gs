@@ -117,13 +117,50 @@ function logRecycling(payload){
   return {ok:true, pointsAwarded:points, challengeId:challengeId};
 }
 
+function normalizeDate_(value){
+  var tz=Session.getScriptTimeZone();
+  if(value instanceof Date) return Utilities.formatDate(value,tz,'yyyy-MM-dd');
+  var str=String(value||'').trim();
+  if(!str) return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  var parsed=new Date(str);
+  if(!isNaN(parsed.getTime())) return Utilities.formatDate(parsed,tz,'yyyy-MM-dd');
+  return str;
+}
+
 function getActiveChallenge_(){
   var sh=getSheet_(SHEETS.CHALLENGES); if(sh.getLastRow()<2) return null;
   var headers=sh.getRange(1,1,1,8).getValues()[0]; var data=sh.getRange(2,1,sh.getLastRow()-1,8).getValues();
-  var today=Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'yyyy-MM-dd'); var i;
-  for(i=0;i<data.length;i++){ var ch=toObj_(headers,data[i]);
-    if(String(ch.Status).toUpperCase()==='ACTIVE' && String(ch.StartDate)<=today && today<=String(ch.EndDate)) return ch; }
-  return null;
+  var today=Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'yyyy-MM-dd'); var i, active=null;
+  for(i=0;i<data.length;i++){
+    var ch=toObj_(headers,data[i]);
+    var status=String(ch.Status||'').toUpperCase();
+    if(status!=='ACTIVE') continue;
+    ch.StartDate=normalizeDate_(ch.StartDate);
+    ch.EndDate=normalizeDate_(ch.EndDate);
+    if(ch.StartDate && ch.EndDate && ch.StartDate<=today && today<=ch.EndDate) return ch;
+    if(!active) active=ch;
+  }
+  return active;
+}
+
+function getActiveChallenge(){
+  var ch=getActiveChallenge_();
+  if(!ch) return {ok:false};
+  var tz=Session.getScriptTimeZone();
+  return {
+    ok:true,
+    challenge:{
+      id:ch.ChallengeID||'',
+      title:ch.Title||'Reto semanal',
+      goal:Number(ch.Goal||getSetting_('WEEKLY_GOAL_DEPOSITS',5)),
+      start:ch.StartDate,
+      end:ch.EndDate,
+      bonus:Number(ch.BonusPoints||getSetting_('WEEKLY_BONUS_POINTS',20)),
+      description:ch.Description||'',
+      updatedAt:Utilities.formatDate(new Date(),tz,'yyyy-MM-dd HH:mm')
+    }
+  };
 }
 function getStudentWeeklyDeposits_(studentId,startDate,endDate){
   var sh=getSheet_(SHEETS.LOG); if(sh.getLastRow()<2) return 0;
