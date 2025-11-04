@@ -82,9 +82,17 @@
     .nav-icon svg *{fill:none}
     .nav-label{line-height:1}
     .counter{display:flex;gap:10px;align-items:flex-start;margin-top:8px;flex-wrap:wrap}
+    .action-steps{display:flex;flex-direction:column;gap:16px;margin-top:12px}
+    .action-step{display:flex;gap:18px;align-items:flex-start;padding:18px 20px;background:#fff;border-radius:20px;border:2px solid rgba(235,25,70,.18);box-shadow:0 16px 32px rgba(0,0,0,.06)}
+    .action-step .step-number{width:54px;height:54px;border-radius:18px;background:var(--primary);color:#fff;font-weight:700;font-size:1.5em;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 12px 24px rgba(235,25,70,.26)}
+    .action-step h4{margin:0;font-size:1.3em}
+    .action-step .step-text{margin:4px 0 10px;color:var(--muted);font-size:1em}
+    .step-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
     .manual-entry{display:flex;gap:10px;align-items:flex-end;width:100%}
     .manual-entry label{flex:1}
-    .manual-hint{display:block;margin-top:6px;color:var(--muted);font-size:.92em}
+    .manual-entry-panel{margin-top:20px;padding:18px;border-radius:18px;background:rgba(235,25,70,.08);border:1px dashed rgba(235,25,70,.35);display:flex;flex-direction:column;gap:12px}
+    .manual-entry-panel strong{font-size:1.05em}
+    .manual-hint{display:block;margin-top:0;color:var(--muted);font-size:.92em}
     .challenge{margin-top:10px}
     .photo-capture{display:flex;flex-direction:column;gap:10px;flex:1;min-width:220px}
     .photo-status{display:block;margin-top:2px;color:var(--muted);font-size:.92em;transition:color .2s,font-weight .2s}
@@ -106,10 +114,13 @@
       input{font-size:1.05em}
       .btn{width:100%;font-size:1.08em;padding:14px 20px}
       .grid-2{gap:20px}
-      .counter{flex-direction:column;align-items:stretch}
-      .counter label{flex:1}
+      .action-step{flex-direction:column;gap:14px;padding:18px}
+      .action-step .step-number{width:48px;height:48px;font-size:1.3em}
+      .step-actions{flex-direction:column;align-items:stretch}
+      .step-actions .btn{width:100%}
       .manual-entry{flex-direction:column;align-items:stretch}
       .manual-entry .btn{margin-top:8px}
+      .manual-entry-panel{padding:18px}
       .photo-capture{width:100%}
       .list,.content-grid{grid-template-columns:1fr}
       .stat{flex-direction:column;align-items:flex-start;gap:6px;font-size:1.05em}
@@ -155,37 +166,56 @@
       <div class="grid-2">
         <div class="card soft">
           <h3>Escanear y Registrar</h3>
-          <p>Deposita plástico en el contenedor correcto y escanea el QR.</p>
-          <button class="btn primary" id="btn-open-scanner">Abrir cámara</button>
-          <div id="scanner-shell" class="scanner-shell hidden">
-            <div class="scanner-header">
-              <div>
-                <strong>Escáner activo</strong>
-                <small id="scanner-status">Apunta al QR del contenedor para registrar tu depósito.</small>
+          <p>Hazlo en dos pasos sencillos. ¡Sigue los círculos!</p>
+          <div class="action-steps">
+            <section class="action-step" aria-labelledby="step-photo">
+              <div class="step-number" aria-hidden="true">1</div>
+              <div class="step-body">
+                <h4 id="step-photo">Cuenta tus botellas</h4>
+                <p class="step-text">Toma una foto clara. El número aparecerá solo.</p>
+                <div class="step-actions">
+                  <button class="btn outline" id="btn-capture-bottles" type="button">Tomar foto</button>
+                  <input id="bottle-photo" class="hidden" type="file" accept="image/*" capture="environment">
+                  <small id="photo-status" class="photo-status">Asegúrate de que se vean todas tus botellas.</small>
+                </div>
               </div>
-              <button class="icon-btn" id="btn-close-scanner" aria-label="Cerrar escáner">&times;</button>
-            </div>
-            <div id="qr-reader" class="qr-box"></div>
-            <div class="scanner-actions">
-              <label id="camera-select-wrapper" class="camera-select hidden">
-                Cámara
-                <select id="camera-select"></select>
-              </label>
-              <button class="btn outline" id="btn-refresh-camera" type="button">Reintentar cámara</button>
-            </div>
+            </section>
+            <section class="action-step" aria-labelledby="step-qr">
+              <div class="step-number" aria-hidden="true">2</div>
+              <div class="step-body">
+                <h4 id="step-qr">Escanea el contenedor</h4>
+                <p class="step-text">Apunta la cámara al QR grande del contenedor.</p>
+                <div class="step-actions">
+                  <button class="btn primary" id="btn-open-scanner" type="button">Abrir cámara QR</button>
+                  <div id="scanner-shell" class="scanner-shell hidden">
+                    <div class="scanner-header">
+                      <div>
+                        <strong>Escáner activo</strong>
+                        <small id="scanner-status">Apunta al QR del contenedor para registrar tu depósito.</small>
+                      </div>
+                      <button class="icon-btn" id="btn-close-scanner" aria-label="Cerrar escáner">&times;</button>
+                    </div>
+                    <div id="qr-reader" class="qr-box"></div>
+                    <div class="scanner-actions">
+                      <label id="camera-select-wrapper" class="camera-select hidden">
+                        Cámara
+                        <select id="camera-select"></select>
+                      </label>
+                      <button class="btn outline" id="btn-refresh-camera" type="button">Reintentar cámara</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
-          <div class="counter">
-            <div class="photo-capture">
-              <button class="btn outline" id="btn-capture-bottles" type="button">Contar botellas (foto)</button>
-              <input id="bottle-photo" class="hidden" type="file" accept="image/*" capture="environment">
-              <small id="photo-status" class="photo-status">Toma una foto clara de las botellas para continuar.</small>
-            </div>
+          <div class="manual-entry-panel">
+            <strong>¿No funciona el QR?</strong>
             <div class="manual-entry">
               <label>ID contenedor <input id="manual-container-id" placeholder="Ej: CT-101"></label>
               <button class="btn" id="btn-log-manual">Registrar sin QR</button>
             </div>
+            <small class="manual-hint">Pide ayuda a un docente para escribir el ID del contenedor.</small>
           </div>
-          <small class="manual-hint">Primero cuenta tus botellas con una foto. Si el QR falla, pídele a un docente que escriba el ID del contenedor aquí.</small>
           <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
         </div>
         <div class="card soft">
