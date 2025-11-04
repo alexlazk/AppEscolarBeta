@@ -277,6 +277,82 @@ function getStudent(studentId){
   return null;
 }
 
+/* ========== Integración con OpenAI para conteo de botellas ========== */
+function detectBottleCount(imageDataUrl){
+  var cleanImage = String(imageDataUrl || '').trim();
+  if (!cleanImage) return {ok:false, error:'No recibimos la imagen para analizar.'};
+
+  var apiKey = collapseWhitespace_(getSetting_('OPENAI_API_KEY', ''));
+  if (!apiKey) return {ok:false, error:'Configura OPENAI_API_KEY en la hoja Settings.'};
+
+  var developerPrompt = 'Actúa como un asistente de guía visual. Cuando el usuario comparta una imagen que contenga botellas de plástico (por lo general vacías), analiza cuidadosamente la imagen para determinar exclusivamente cuántas botellas de plástico aparecen en ella.\n\n- Observa la imagen y repasa todas las regiones cuidadosamente, identificando cada botella de plástico visible. Ignora otros objetos que no sean botellas de plástico.\n- Antes de dar el resultado final, asegúrate de hacer un conteo mental cuidadoso, considerando ángulos, posibles superposiciones, y diferencias en tamaño o forma, para evitar confundir otros objetos o envases.\n- Si no puedes determinar con certeza la cantidad de botellas (por ejemplo, la imagen está borrosa o las botellas están muy tapadas), responde únicamente “0” si no hay ninguna visible, o el número que puedas observar con seguridad.\n- La respuesta debe consistir ÚNICAMENTE en el número (sin explicación, palabras o signos adicionales).\n- Si la imagen no contiene ninguna botella de plástico, responde con “0”.\n\n**Formato de salida:**  \nDevuelve únicamente un número entero, sin ningún otro texto, comentario ni formato adicional.\n\n**Ejemplo:**\n\n- Imagen: [Foto de una mesa con 4 botellas de plástico vacías]  \n  Salida esperada:  \n  4\n\n- Imagen: [Foto en la que no hay botellas de plástico]  \n  Salida esperada:  \n  0\n\n- Imagen: [Foto con varias botellas agrupadas, algunas parcialmente tapadas, pero 3 claramente visibles]  \n  Salida esperada:  \n  3\n\n**Recordatorio de lo importante:**  \nTu objetivo es proporcionar sólo el número de botellas de plástico visibles en la imagen, ni más ni menos. No agregues explicaciones, símbolos, palabras ni ningún texto adicional.';
+
+  var body = {
+    model: 'gpt-5-nano',
+    messages: [
+      { role: 'developer', content: [{ type: 'text', text: developerPrompt }] },
+      { role: 'user', content: [{ type: 'image_url', image_url: { url: cleanImage } }] }
+    ],
+    response_format: { type: 'text' },
+    verbosity: 'low',
+    reasoning_effort: 'high',
+    store: false
+  };
+
+  var params = {
+    method: 'post',
+    contentType: 'application/json',
+    muteHttpExceptions: true,
+    headers: { Authorization: 'Bearer ' + apiKey },
+    payload: JSON.stringify(body)
+  };
+
+  try {
+    var response = UrlFetchApp.fetch('https://api.openai.com/v1/chat/completions', params);
+    var code = response.getResponseCode();
+    var text = response.getContentText();
+    var json;
+
+    try {
+      json = text ? JSON.parse(text) : {};
+    } catch (parseErr) {
+      return {ok:false, error:'No se pudo interpretar la respuesta del servicio.'};
+    }
+
+    if (code < 200 || code >= 300) {
+      var apiError = json && json.error && json.error.message ? json.error.message : 'Código ' + code;
+      return {ok:false, error:'OpenAI devolvió un error: ' + apiError};
+    }
+
+    var rawContent = '';
+    if (json && json.choices && json.choices.length) {
+      var msg = json.choices[0].message;
+      if (msg) {
+        if (typeof msg.content === 'string') {
+          rawContent = msg.content.trim();
+        } else if (Array.isArray(msg.content)) {
+          for (var i = 0; i < msg.content.length; i++) {
+            var chunk = msg.content[i];
+            if (chunk && chunk.type === 'text' && chunk.text) {
+              rawContent = String(chunk.text).trim();
+              if (rawContent) break;
+            }
+          }
+        }
+      }
+    }
+
+    var count = parseInt(rawContent, 10);
+    if (!isFinite(count) || isNaN(count)) {
+      return {ok:false, error:'La respuesta del conteo no fue un número válido.'};
+    }
+
+    return {ok:true, count: Math.max(0, count)};
+  } catch (err) {
+    return {ok:false, error:'Error conectando con OpenAI: ' + err};
+  }
+}
+
 /* ========== Registro por QR ========== */
 function logRecycling(payload){
   var qrText=payload.qrText, studentId=payload.studentId, count=Math.max(1,Number(payload.count||1));
